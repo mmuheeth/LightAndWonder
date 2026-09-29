@@ -47,6 +47,12 @@ fortune_ox = {
         "SO": "SO (feature)"
     },
     "scatter_symbols": ["SC", "FG", "SF"],
+    # Weighted tables in math.xml that the Game Config tab shows as "Orb value range"; {bet} is
+    # the paytable's minimum total bet. Negative values are jackpot levels (-5 is JP5).
+    "orb_value_tables": [
+        {"title": "Other orbs", "table": "BG_NonSCPearlCredit_{bet}"},
+        {"title": "SC (scatter orb)", "table": "BG_SCPearlCredit_{bet}"},
+    ],
     "meter": {
         "band": [0.138889, 0.555556]
     },

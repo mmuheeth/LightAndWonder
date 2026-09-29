@@ -38,21 +38,13 @@ class BadRequestException(AppException):
         )
 
 
-class UnauthorizedException(AppException):
-    def __init__(self, message: str = "Unauthorized", details: dict | None = None) -> None:
+class ServiceUnavailableException(AppException):
+    def __init__(
+        self, message: str = "Service unavailable", details: dict | None = None
+    ) -> None:
         super().__init__(
             message=message,
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            error_code="UNAUTHORIZED",
-            details=details,
-        )
-
-
-class ForbiddenException(AppException):
-    def __init__(self, message: str = "Forbidden", details: dict | None = None) -> None:
-        super().__init__(
-            message=message,
-            status_code=status.HTTP_403_FORBIDDEN,
-            error_code="FORBIDDEN",
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            error_code="SERVICE_UNAVAILABLE",
             details=details,
         )

@@ -1,5 +1,7 @@
 from functools import lru_cache
 
+from typing import Literal
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -16,6 +18,30 @@ class Settings(BaseSettings):
 
     api_v1_prefix: str = "/api/v1"
     cors_origins: str = "http://localhost:3000"
+
+    # Where the selected game/mode is saved so it survives restarts.
+    game_context_file: str = "data/game_context.json"
+
+    # OBS Studio, controlled over its built-in obs-websocket server.
+    # Host/port are only defaults: the server can be changed from the UI and is then
+    # saved to obs_config_file, which takes precedence over these.
+    obs_host: str = "localhost"
+    obs_port: int = 4455
+    obs_password: str = ""
+    obs_exe_path: str = r"C:\Program Files\obs-studio\bin\64bit\obs64.exe"
+    # Seconds to wait for OBS to launch and its websocket server to accept connections.
+    obs_launch_timeout: float = 30.0
+    # Screenshots go to <dir>/screenshots and recordings to <dir>/recordings.
+    obs_captures_dir: str = "obs-captures/obs"
+    obs_config_file: str = "data/obs_config.json"
+    # The window chosen for capture; re-applied to OBS on every connect.
+    obs_window_file: str = "data/obs_window.json"
+    # Default screenshot format: "bmp" (fastest, lossless) or "png" (lossless, ~3x slower).
+    obs_screenshot_format: Literal["bmp", "png"] = "bmp"
+    # "scene" captures the composed scene at canvas size (constant image size); "native"
+    # captures the scene's single source at its own pixel size, which follows the source
+    # (e.g. the game window) if it is resized. See ObsService.
+    obs_screenshot_mode: Literal["native", "scene"] = "scene"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
