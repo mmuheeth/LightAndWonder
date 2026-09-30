@@ -15,17 +15,17 @@ export function PaylineCombosCard({
   symbols: ReadonlyMap<string, SymbolInfo>
 }) {
   return (
-    <Card className="[--card-spacing:--spacing(6)]">
+    <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Coins className="size-4" aria-hidden />
+        <CardTitle>
+          <Coins aria-hidden />
           Payline combos
         </CardTitle>
         <CardDescription>What each symbol pays for a run of it, left to right along a line</CardDescription>
       </CardHeader>
 
       <CardContent>
-        <Table>
+        <Table containerClassName="rounded-lg border">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               <TableHead>Code</TableHead>

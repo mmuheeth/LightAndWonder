@@ -1,9 +1,11 @@
-import { Loader2, RefreshCw, ScanText } from 'lucide-react'
+import { History, Loader2, RefreshCw, ScanText } from 'lucide-react'
 
+import { Section } from '@/components/layout/Section'
 import { OcrRecordView } from '@/components/ocr/OcrRecordView'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { EmptyState, Notice } from '@/components/ui/notice'
 import { useGafStatus } from '@/hooks/useGaf'
 import { useObsStatus } from '@/hooks/useObs'
 import { useExtractValues, useLatestOcrRecord, useReadOcrRecord, useWarmUpOcr } from '@/hooks/useOcr'
@@ -31,8 +33,8 @@ export function OcrPanel() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ScanText className="size-4" />
+          <CardTitle>
+            <ScanText />
             Extract values
           </CardTitle>
           <CardDescription>
@@ -48,7 +50,7 @@ export function OcrPanel() {
             . The meter is switched between cash and credits through GAF to capture both, and switched back.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
           <Button onClick={() => context && extract.mutate(context)} disabled={!context || !connected || busy}>
             {extract.isPending ? <Loader2 className="animate-spin" /> : <ScanText />}
             {extract.phase ? PHASE_LABEL[extract.phase] : 'Extract Values'}
@@ -68,28 +70,34 @@ export function OcrPanel() {
               takes about half a minute.
             </p>
           ) : null}
-          {error ? <p className="text-sm text-destructive">{error.message}</p> : null}
+          {error ? <Notice tone="error">{error.message}</Notice> : null}
         </CardContent>
       </Card>
 
       {latest.isError ? (
-        <p className="text-sm text-destructive">Could not load the last capture: {latest.error.message}</p>
+        <Notice tone="error">Could not load the last capture: {latest.error.message}</Notice>
       ) : latest.isPending ? (
-        <p className="text-sm text-muted-foreground">Loading the last capture…</p>
+        <EmptyState loading title="Loading the last capture…" />
       ) : !record ? (
-        <p className="text-sm text-muted-foreground">Nothing extracted yet.</p>
+        <EmptyState icon={History} title="Nothing extracted yet">
+          Press Extract Values to read the meters and cyclic messages off a screenshot.
+        </EmptyState>
       ) : (
-        <section className="space-y-3">
-          <h3 className="flex flex-wrap items-center gap-x-3 gap-y-1 font-heading text-base font-medium">
-            Latest capture
-            <Badge variant="secondary">
-              {record.game} · {record.mode}
-            </Badge>
-            <span className="text-sm font-normal text-muted-foreground">
-              {new Date(record.created_at).toLocaleString()}
-              {record.readings ? ` · read in ${record.readings.seconds} s` : ''}
-            </span>
-            {!reading ? (
+        <Section
+          title="Latest capture"
+          meta={
+            <>
+              <Badge variant="secondary">
+                {record.game} · {record.mode}
+              </Badge>
+              <span className="text-sm text-muted-foreground">
+                {new Date(record.created_at).toLocaleString()}
+                {record.readings ? ` · read in ${record.readings.seconds} s` : ''}
+              </span>
+            </>
+          }
+          actions={
+            !reading ? (
               <Button
                 variant="outline"
                 size="sm"
@@ -100,10 +108,11 @@ export function OcrPanel() {
                 <RefreshCw />
                 {record.readings ? 'Read again' : 'Read'}
               </Button>
-            ) : null}
-          </h3>
+            ) : null
+          }
+        >
           <OcrRecordView key={record.id} record={record} reading={reading} />
-        </section>
+        </Section>
       )}
     </div>
   )

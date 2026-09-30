@@ -16,13 +16,13 @@ export function GameContextSelectors() {
   const disabled = !context || isPending
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex shrink-0 items-center gap-2">
       <Select
         value={context?.game ?? ''}
         onValueChange={(game) => mutate({ game })}
         disabled={disabled}
       >
-        <SelectTrigger aria-label="Game" className="w-48">
+        <SelectTrigger aria-label="Game" className="w-36 sm:w-48">
           <SelectValue placeholder="Select game" />
         </SelectTrigger>
         <SelectContent align="end">
@@ -39,7 +39,7 @@ export function GameContextSelectors() {
         onValueChange={(mode) => mutate({ mode: mode as GameMode })}
         disabled={disabled}
       >
-        <SelectTrigger aria-label="Game mode" className="w-32">
+        <SelectTrigger aria-label="Game mode" className="w-28 sm:w-32">
           <SelectValue placeholder="Select mode" />
         </SelectTrigger>
         <SelectContent align="end">

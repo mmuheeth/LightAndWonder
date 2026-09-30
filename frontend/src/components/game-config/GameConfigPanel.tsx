@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 
+import { EmptyState, Notice } from '@/components/ui/notice'
 import { OrbValuesCard } from '@/components/game-config/OrbValuesCard'
 import { PaylineCombosCard } from '@/components/game-config/PaylineCombosCard'
 import { PaytableCard } from '@/components/game-config/PaytableCard'
@@ -18,7 +19,7 @@ import type { GameContext } from '@/types/gameContext'
  */
 export function GameConfigPanel() {
   const context = useGameContextStore((state) => state.context)
-  if (!context) return <p className="text-sm text-muted-foreground">Loading selection…</p>
+  if (!context) return <EmptyState loading title="Loading selection…" />
   return <GameConfigView key={`${context.game}:${context.mode}`} context={context} />
 }
 
@@ -51,11 +52,9 @@ function GameConfigView({ context }: { context: GameContext }) {
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['game-config'] })
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="space-y-6">
       {currentQuery.isError ? (
-        <p className="text-sm text-destructive">
-          Could not read the game log status: {currentQuery.error.message}
-        </p>
+        <Notice tone="error">Could not read the game log status: {currentQuery.error.message}</Notice>
       ) : null}
 
       <PaytableCard
@@ -71,17 +70,14 @@ function GameConfigView({ context }: { context: GameContext }) {
       />
 
       {list.isError ? (
-        <p className="text-sm text-destructive">Could not list paytables: {list.error.message}</p>
+        <Notice tone="error">Could not list paytables: {list.error.message}</Notice>
       ) : null}
       {paytableId && detail.isError ? (
-        <p className="text-sm text-destructive">
-          Could not load paytable <span className="font-mono">{paytableId}</span>:{' '}
-          {detail.error.message}
-        </p>
+        <Notice tone="error">
+          Could not load paytable <span className="font-mono">{paytableId}</span>: {detail.error.message}
+        </Notice>
       ) : null}
-      {paytableId && detail.isPending ? (
-        <p className="text-sm text-muted-foreground">Loading paytable…</p>
-      ) : null}
+      {paytableId && detail.isPending ? <EmptyState loading title="Loading paytable…" /> : null}
 
       {config ? (
         <div
@@ -89,11 +85,13 @@ function GameConfigView({ context }: { context: GameContext }) {
           aria-busy={stale}
         >
           {config.warnings.length > 0 ? (
-            <ul className="space-y-1 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200">
-              {config.warnings.map((warning) => (
-                <li key={warning}>{warning}</li>
-              ))}
-            </ul>
+            <Notice tone="warning">
+              <ul className="space-y-1">
+                {config.warnings.map((warning) => (
+                  <li key={warning}>{warning}</li>
+                ))}
+              </ul>
+            </Notice>
           ) : null}
           {config.win_geometry ? (
             <WinGeometryCard

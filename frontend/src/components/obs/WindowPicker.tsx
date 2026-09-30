@@ -1,6 +1,7 @@
 import { Loader2, RefreshCw } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { Notice } from '@/components/ui/notice'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
   useObsCaptureSetup,
@@ -24,7 +25,7 @@ export function WindowPicker({ connected }: { connected: boolean }) {
 
   return (
     <div className="space-y-2">
-      <p className="text-xs text-muted-foreground">Window to capture</p>
+      <p className="text-sm font-medium">Window to capture</p>
       <div className="flex flex-wrap items-center gap-2">
         <Select
           value={saved?.value ?? ''}
@@ -79,8 +80,8 @@ export function WindowPicker({ connected }: { connected: boolean }) {
           {saved && setup.data?.applied ? ' · follows the window automatically' : ''}
         </p>
       ) : null}
-      {setup.data?.warning ? <p className="text-sm text-amber-600">{setup.data.warning}</p> : null}
-      {error ? <p className="text-sm text-destructive">{error.message}</p> : null}
+      {setup.data?.warning ? <Notice tone="warning">{setup.data.warning}</Notice> : null}
+      {error ? <Notice tone="error">{error.message}</Notice> : null}
     </div>
   )
 }

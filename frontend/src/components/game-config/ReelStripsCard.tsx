@@ -37,10 +37,10 @@ export function ReelStripsCard({ config, symbols }: ReelStripsCardProps) {
   const hasWeights = columns.some((strip) => strip.weights.some((w) => w !== strip.weights[0]))
 
   return (
-    <Card className="[--card-spacing:--spacing(6)]">
+    <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Rows3 className="size-4" aria-hidden />
+        <CardTitle>
+          <Rows3 aria-hidden />
           Reel strips
         </CardTitle>
         <CardDescription>
@@ -77,13 +77,13 @@ export function ReelStripsCard({ config, symbols }: ReelStripsCardProps) {
         <Table containerClassName="max-h-[28rem] overflow-y-auto rounded-lg border">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="sticky top-0 z-10 w-16 bg-card text-right shadow-[inset_0_-1px_0_var(--border)]">
+              <TableHead className="sticky top-0 z-10 w-16 bg-muted text-right shadow-[inset_0_-1px_0_var(--border)]">
                 Stop
               </TableHead>
               {columns.map((strip, reel) => (
                 <TableHead
                   key={reel}
-                  className="sticky top-0 z-10 border-l bg-card tracking-normal normal-case shadow-[inset_0_-1px_0_var(--border)]"
+                  className="sticky top-0 z-10 border-l bg-muted tracking-normal normal-case shadow-[inset_0_-1px_0_var(--border)]"
                 >
                   <div className="text-sm font-semibold text-foreground">Reel {reel + 1}</div>
                   <div className="font-mono text-[11px] font-normal">

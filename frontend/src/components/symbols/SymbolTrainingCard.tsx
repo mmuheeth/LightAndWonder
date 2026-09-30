@@ -3,6 +3,7 @@ import { Dumbbell, Loader2, RefreshCw } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Notice } from '@/components/ui/notice'
 import { useSymbolModel, useTrainSymbolModel } from '@/hooks/useSymbols'
 import { useGameContextStore } from '@/store/useGameContextStore'
 
@@ -44,8 +45,8 @@ export function SymbolTrainingCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Dumbbell className="size-4" />
+        <CardTitle>
+          <Dumbbell />
           Training
         </CardTitle>
         <CardDescription className="max-w-3xl">
@@ -70,7 +71,7 @@ export function SymbolTrainingCard() {
           </Button>
         </CardAction>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-4">
         <Button
           variant="outline"
           onClick={() => context && train.mutate(context.game)}
@@ -97,12 +98,12 @@ export function SymbolTrainingCard() {
           </p>
         ) : null}
         {model?.state === 'failed' && model.error ? (
-          <p className="text-sm text-destructive">Training failed: {model.error}</p>
+          <Notice tone="error">Training failed: {model.error}</Notice>
         ) : null}
         {status.isError ? (
-          <p className="text-sm text-destructive">Could not load the model status: {status.error.message}</p>
+          <Notice tone="error">Could not load the model status: {status.error.message}</Notice>
         ) : null}
-        {train.error ? <p className="text-sm text-destructive">{train.error.message}</p> : null}
+        {train.error ? <Notice tone="error">{train.error.message}</Notice> : null}
       </CardContent>
     </Card>
   )

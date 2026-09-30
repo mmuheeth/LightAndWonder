@@ -1,6 +1,7 @@
 import { FileBraces, RefreshCw } from 'lucide-react'
 import type { ReactNode } from 'react'
 
+import { SubHeading } from '@/components/layout/Section'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -85,10 +86,10 @@ export function PaytableCard({
   const options = paytableId && !paytables.includes(paytableId) ? [paytableId, ...paytables] : paytables
 
   return (
-    <Card className="[--card-spacing:--spacing(6)]">
+    <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileBraces className="size-4" aria-hidden />
+        <CardTitle>
+          <FileBraces aria-hidden />
           Current paytable
         </CardTitle>
         <CardAction>
@@ -166,9 +167,7 @@ export function PaytableCard({
         ) : null}
 
         <div className="space-y-2 border-t pt-5">
-          <p className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
-            Inspect another paytable
-          </p>
+          <SubHeading>Inspect another paytable</SubHeading>
           <Select
             value={inspecting && paytableId ? paytableId : FOLLOW_LOG}
             onValueChange={(value) => onInspect(value === FOLLOW_LOG ? null : value)}

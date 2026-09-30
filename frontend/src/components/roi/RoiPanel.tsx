@@ -1,10 +1,12 @@
-import { Crop, Loader2 } from 'lucide-react'
+import { Crop, History, Loader2 } from 'lucide-react'
 
+import { Section } from '@/components/layout/Section'
 import { RoiRecordView } from '@/components/roi/RoiRecordView'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { EmptyState, Notice } from '@/components/ui/notice'
 import { useObsStatus } from '@/hooks/useObs'
 import { useExtractRoi, useRoiRecords } from '@/hooks/useRoi'
 import { useGameContextStore } from '@/store/useGameContextStore'
@@ -28,7 +30,10 @@ export function RoiPanel() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Extract ROI</CardTitle>
+          <CardTitle>
+            <Crop />
+            Extract ROI
+          </CardTitle>
           <CardDescription>
             Takes a screenshot of the game in OBS, then cuts out its regions of interest and splits
             the reel grid into tiles
@@ -42,7 +47,7 @@ export function RoiPanel() {
             .
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
           <Button
             onClick={() => context && extract.mutate(context)}
             disabled={!context || !connected || extract.isPending}
@@ -53,39 +58,41 @@ export function RoiPanel() {
           {!connected && !status.isError ? (
             <p className="text-xs text-muted-foreground">Connect to OBS in the OBS tab first.</p>
           ) : null}
-          {extract.error ? <p className="text-sm text-destructive">{extract.error.message}</p> : null}
+          {extract.error ? <Notice tone="error">{extract.error.message}</Notice> : null}
         </CardContent>
       </Card>
 
       {records.isError ? (
-        <p className="text-sm text-destructive">
-          Could not load earlier extractions: {records.error.message}
-        </p>
+        <Notice tone="error">Could not load earlier extractions: {records.error.message}</Notice>
       ) : records.isPending ? (
-        <p className="text-sm text-muted-foreground">Loading extractions…</p>
+        <EmptyState loading title="Loading extractions…" />
       ) : !latest ? (
-        <p className="text-sm text-muted-foreground">No extractions yet.</p>
+        <EmptyState icon={History} title="No extractions yet">
+          Press Extract ROI to cut the game&apos;s regions out of a screenshot.
+        </EmptyState>
       ) : (
-        <section className="space-y-3">
-          <h3 className="flex flex-wrap items-center gap-x-3 gap-y-1 font-heading text-base font-medium">
-            Latest extraction
-            <Badge variant="secondary">
-              {latest.game} · {latest.mode}
-            </Badge>
-            <span className="text-sm font-normal text-muted-foreground">{formatTime(latest)}</span>
-          </h3>
-          <RoiRecordView key={latest.id} record={latest} />
-        </section>
+        <Section
+          title="Latest extraction"
+          meta={
+            <>
+              <Badge variant="secondary">
+                {latest.game} · {latest.mode}
+              </Badge>
+              <span className="text-sm text-muted-foreground">{formatTime(latest)}</span>
+            </>
+          }
+        >
+          <Card>
+            <CardContent>
+              <RoiRecordView key={latest.id} record={latest} />
+            </CardContent>
+          </Card>
+        </Section>
       )}
 
       {previous.length > 0 ? (
-        <section className="space-y-3">
-          <h3 className="font-heading text-base font-medium">Previous extractions</h3>
-          <Accordion
-            type="single"
-            collapsible
-            className="rounded-xl bg-card px-4 ring-1 ring-foreground/10"
-          >
+        <Section title="Previous extractions">
+          <Accordion type="single" collapsible className="surface px-4">
             {previous.map((record) => (
               <AccordionItem key={record.id} value={record.id}>
                 <AccordionTrigger className="hover:no-underline">
@@ -105,7 +112,7 @@ export function RoiPanel() {
               </AccordionItem>
             ))}
           </Accordion>
-        </section>
+        </Section>
       ) : null}
     </div>
   )

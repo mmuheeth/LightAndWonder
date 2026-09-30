@@ -1,10 +1,11 @@
-import { Loader2, ScanSearch } from 'lucide-react'
+import { History, Loader2, ScanSearch } from 'lucide-react'
 
 import { MinConfidenceField } from '@/components/symbols/MinConfidenceField'
 import { SymbolReadingCard } from '@/components/symbols/SymbolReadingCard'
 import { SymbolTrainingCard } from '@/components/symbols/SymbolTrainingCard'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { EmptyState, Notice } from '@/components/ui/notice'
 import { useMinConfidence } from '@/hooks/useMinConfidence'
 import { useObsStatus } from '@/hooks/useObs'
 import { useIdentifySymbols, useLatestSymbolReading, useSymbolModel } from '@/hooks/useSymbols'
@@ -27,8 +28,8 @@ export function SymbolPanel() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ScanSearch className="size-4" />
+          <CardTitle>
+            <ScanSearch />
             Identify symbols
           </CardTitle>
           <CardDescription>
@@ -44,7 +45,7 @@ export function SymbolPanel() {
             .
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
           <div className="flex flex-wrap items-end gap-4">
             <Button
               onClick={() => context && identify.mutate(context)}
@@ -67,18 +68,20 @@ export function SymbolPanel() {
             </p>
           ) : null}
           {minConfidence.invalid ? (
-            <p className="text-xs text-destructive">Min confidence is a percent from 0 to 100.</p>
+            <Notice tone="error">Min confidence is a percent from 0 to 100.</Notice>
           ) : null}
-          {identify.error ? <p className="text-sm text-destructive">{identify.error.message}</p> : null}
+          {identify.error ? <Notice tone="error">{identify.error.message}</Notice> : null}
         </CardContent>
       </Card>
 
       {latest.isError ? (
-        <p className="text-sm text-destructive">Could not load the last reading: {latest.error.message}</p>
+        <Notice tone="error">Could not load the last reading: {latest.error.message}</Notice>
       ) : latest.isPending ? (
-        <p className="text-sm text-muted-foreground">Loading the last reading…</p>
+        <EmptyState loading title="Loading the last reading…" />
       ) : !latest.data ? (
-        <p className="text-sm text-muted-foreground">No symbols read yet.</p>
+        <EmptyState icon={History} title="No symbols read yet">
+          Press Identify to name every tile on the reels.
+        </EmptyState>
       ) : (
         <SymbolReadingCard key={latest.data.id} reading={latest.data} minConfidence={minConfidence.value} />
       )}

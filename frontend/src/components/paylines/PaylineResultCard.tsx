@@ -1,5 +1,6 @@
-import { Spline, TriangleAlert } from 'lucide-react'
+import { Waypoints, TriangleAlert } from 'lucide-react'
 
+import { SubHeading } from '@/components/layout/Section'
 import { PaylineLineRow } from '@/components/paylines/PaylineLineRow'
 import { PaylineOverlay } from '@/components/paylines/PaylineOverlay'
 import { PayDescription, PaylineRun } from '@/components/paylines/PaylineRun'
@@ -9,17 +10,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { formatCredits, formatPercent, lineColor } from '@/lib/paylines'
 import type { PaylineOutcome, PaylineResult } from '@/types/paylines'
 
-function SectionLabel({ children }: { children: string }) {
-  return <h4 className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">{children}</h4>
-}
-
 const lineNames = (lines: PaylineOutcome[]) => lines.map((line) => `Line ${line.number}`).join(', ')
 
 /** A line that paid: what it read, what it matched, and what the paytable gave for it. */
 function AwardedLine({ line }: { line: PaylineOutcome }) {
   return (
     <li
-      className="space-y-1.5 rounded-lg border border-l-4 bg-card p-3"
+      className="space-y-1.5 rounded-lg border border-l-4 bg-card p-3 shadow-card"
       style={{ borderLeftColor: lineColor(line.number) }}
     >
       <div className="flex items-baseline justify-between gap-3">
@@ -71,8 +68,8 @@ export function PaylineResultCard({ result }: { result: PaylineResult }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Spline className="size-4" />
+        <CardTitle>
+          <Waypoints />
           Paylines
         </CardTitle>
         <CardDescription>Runs read off the picture by the classifier, awards decided by the paytable</CardDescription>
@@ -103,7 +100,7 @@ export function PaylineResultCard({ result }: { result: PaylineResult }) {
         ) : null}
 
         <section className="space-y-2">
-          <SectionLabel>Awarded</SectionLabel>
+          <SubHeading>Awarded</SubHeading>
           {awarded.length > 0 ? (
             <ul className="grid gap-3 md:grid-cols-2">
               {awarded.map((line) => (
@@ -115,7 +112,7 @@ export function PaylineResultCard({ result }: { result: PaylineResult }) {
           )}
         </section>
 
-        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 rounded-lg border bg-muted/30 px-4 py-3">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 rounded-lg border bg-muted/60 px-4 py-3">
           <p className="flex flex-wrap items-baseline gap-x-2">
             <span className="font-medium">Total credits</span>
             <span className="text-sm text-muted-foreground">

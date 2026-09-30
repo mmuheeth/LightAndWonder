@@ -5,6 +5,7 @@ import {
   Coins,
   Dices,
   Eye,
+  Gamepad2,
   Gauge,
   HandCoins,
   LayoutGrid,
@@ -12,6 +13,7 @@ import {
   Loader2,
   MessageSquareText,
   Plug,
+  ScrollText,
   RotateCw,
   Unplug,
   Zap,
@@ -21,7 +23,9 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Section } from '@/components/layout/Section'
 import { Input } from '@/components/ui/input'
+import { EmptyState, Notice } from '@/components/ui/notice'
 import {
   useConnectGaf,
   useDisconnectGaf,
@@ -120,7 +124,7 @@ function ActionControl({ action, disabled, pending, onRun }: {
   if (action.params.length === 0) return button
 
   return (
-    <div className="flex flex-wrap items-end gap-2 rounded-lg border p-2" title={action.description}>
+    <div className="flex flex-wrap items-end gap-2 rounded-lg border bg-muted/40 p-2.5" title={action.description}>
       {action.params.map((param) => (
         <label key={param.name} className="space-y-1 text-xs text-muted-foreground">
           {param.label}
@@ -129,7 +133,7 @@ function ActionControl({ action, disabled, pending, onRun }: {
             <select
               value={typed[param.name]}
               onChange={(event) => setTyped((previous) => ({ ...previous, [param.name]: event.target.value }))}
-              className="block h-8 rounded-lg border border-input bg-transparent px-2 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
+              className="block h-9 rounded-lg border border-input bg-card px-2.5 text-sm text-foreground shadow-xs outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
             >
               {param.options.map((option) => (
                 <option key={option} value={option}>
@@ -157,7 +161,7 @@ function ActionControl({ action, disabled, pending, onRun }: {
 function ResultView({ run }: { run: ActionRun }) {
   const values = Object.entries(run.result.values)
   return (
-    <li className="space-y-1 rounded-lg border bg-card p-3">
+    <li className="space-y-1.5 rounded-lg border bg-card p-4 shadow-card">
       <p className="flex flex-wrap items-baseline gap-x-2 text-sm">
         <span className="font-medium">{run.result.label}</span>
         <span className="text-xs text-muted-foreground">{run.at.toLocaleTimeString()}</span>
@@ -224,7 +228,8 @@ export function GafPanel() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex flex-wrap items-center gap-2">
+          <CardTitle className="flex-wrap">
+            <Gamepad2 />
             Game Automation Framework
             <StatusBadge unreachable={status.isError} reachable={reachable} connected={connected} />
             {status.data?.state ? (
@@ -262,7 +267,7 @@ export function GafPanel() {
             )}
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-2">
             <Button
               onClick={() => {
@@ -289,13 +294,11 @@ export function GafPanel() {
             </Button>
           </div>
           {status.isError ? (
-            <p className="text-sm text-destructive">
-              Could not load the GAF status: {status.error.message}
-            </p>
+            <Notice tone="error">Could not load the GAF status: {status.error.message}</Notice>
           ) : status.data?.detail && !connected ? (
-            <p className="text-sm text-muted-foreground">{status.data.detail}</p>
+            <Notice>{status.data.detail}</Notice>
           ) : null}
-          {error ? <p className="text-sm text-destructive">{error.message}</p> : null}
+          {error ? <Notice tone="error">{error.message}</Notice> : null}
         </CardContent>
       </Card>
 
@@ -306,7 +309,7 @@ export function GafPanel() {
         </CardHeader>
         <CardContent>
           {actions.isError ? (
-            <p className="text-sm text-destructive">Could not load the actions: {actions.error.message}</p>
+            <Notice tone="error">Could not load the actions: {actions.error.message}</Notice>
           ) : (
             <div className="flex flex-wrap gap-2">
               {common.map((action) => (
@@ -347,10 +350,11 @@ export function GafPanel() {
         </CardContent>
       </Card>
 
-      <section className="space-y-3">
-        <h3 className="font-heading text-base font-medium">Results</h3>
+      <Section title="Results">
         {runs.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nothing run yet.</p>
+          <EmptyState icon={ScrollText} title="Nothing run yet">
+            Connect, then press an action. Each result is listed here.
+          </EmptyState>
         ) : (
           <ul className="space-y-2">
             {runs.map((entry) => (
@@ -358,7 +362,7 @@ export function GafPanel() {
             ))}
           </ul>
         )}
-      </section>
+      </Section>
     </div>
   )
 }

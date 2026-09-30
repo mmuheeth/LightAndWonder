@@ -1,6 +1,7 @@
 import { Loader2 } from 'lucide-react'
 
 import { roiImageSrc } from '@/api/roi'
+import { SubHeading } from '@/components/layout/Section'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -136,14 +137,14 @@ function RegionView({ region, live }: { region: CyclicRegion; live: boolean }) {
   const title = REGION_TITLES[region.name] ?? region.name
   return (
     <section className="space-y-2">
-      <h4 className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
-        {title}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        <SubHeading>{title}</SubHeading>
         <CycleBadge region={region} live={live} />
-      </h4>
+      </div>
       {region.messages.length === 0 ? (
         <p className="text-sm text-muted-foreground italic">{live ? 'Nothing shown yet.' : 'Nothing was shown here.'}</p>
       ) : (
-        <Table>
+        <Table containerClassName="rounded-lg border">
           <TableHeader>
             <TableRow>
               <TableHead className="w-0">#</TableHead>
@@ -188,7 +189,7 @@ export function CyclicRoundView({ round, live = false }: { round: CyclicRound; l
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        <CardTitle className="flex-wrap gap-x-3 gap-y-1">
           {new Date(round.created_at).toLocaleTimeString()}
           <WinBadge round={round} />
         </CardTitle>

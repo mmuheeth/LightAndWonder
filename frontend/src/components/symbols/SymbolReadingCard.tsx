@@ -2,6 +2,7 @@ import { Eye } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 import { roiImageSrc } from '@/api/roi'
+import { SubHeading } from '@/components/layout/Section'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -30,15 +31,11 @@ const tileKey = (tile: SymbolTile) => `${tile.row}-${tile.column}`
 /** A tile is named only when the classifier is at least this sure (percent). */
 const isNamed = (tile: SymbolTile, minConfidence: number) => tile.confidence >= minConfidence
 
-function SectionLabel({ children }: { children: ReactNode }) {
-  return <h4 className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">{children}</h4>
-}
-
 /** The reel grid as cells in a bordered box; `columns` wide, filled row by row. */
 function Grid({ label, columns, children }: { label: string; columns: number; children: ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <SectionLabel>{label}</SectionLabel>
+      <SubHeading>{label}</SubHeading>
       <div
         className="grid w-fit gap-px overflow-hidden rounded-lg border bg-border"
         style={{ gridTemplateColumns: `repeat(${columns}, auto)` }}
@@ -81,7 +78,7 @@ function ReelsImage({ reading }: { reading: SymbolReading }) {
   if (!reading.reels) return null
   return (
     <section className="space-y-1.5">
-      <SectionLabel>On the reels</SectionLabel>
+      <SubHeading>On the reels</SubHeading>
       <a
         href={roiImageSrc(reading.reels)}
         target="_blank"
@@ -119,7 +116,7 @@ function TilesTable({ reading, minConfidence }: { reading: SymbolReading; minCon
   return (
     <Accordion type="single" collapsible className="border-t">
       <AccordionItem value="tiles" className="border-b-0">
-        <AccordionTrigger className="text-[11px] tracking-wider text-muted-foreground uppercase hover:no-underline">
+        <AccordionTrigger className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase hover:no-underline">
           <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
             Every tile
             <Badge variant="outline" className="font-mono tracking-normal normal-case">
@@ -184,8 +181,8 @@ export function SymbolReadingCard({ reading, minConfidence }: { reading: SymbolR
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Eye className="size-4" />
+        <CardTitle>
+          <Eye />
           Symbols on the reels
         </CardTitle>
         <CardDescription>

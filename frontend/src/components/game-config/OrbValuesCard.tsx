@@ -7,10 +7,10 @@ import type { OrbTable } from '@/types/gameConfig'
 
 export function OrbValuesCard({ tables }: { tables: OrbTable[] }) {
   return (
-    <Card className="[--card-spacing:--spacing(6)]">
+    <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Gem className="size-4" aria-hidden />
+        <CardTitle>
+          <Gem aria-hidden />
           Orb value range
         </CardTitle>
         <CardDescription>What a landed orb can show, base game, at the minimum bet</CardDescription>
@@ -23,7 +23,7 @@ export function OrbValuesCard({ tables }: { tables: OrbTable[] }) {
               <h3 className="font-heading text-sm font-medium">{table.title}</h3>
               <span className="text-xs text-muted-foreground">Bet {table.bet}</span>
             </div>
-            <Table>
+            <Table containerClassName="rounded-lg border">
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <TableHead>Value</TableHead>

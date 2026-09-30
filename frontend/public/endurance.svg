@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" fill="none" viewBox="0 0 512 512">
+  <title>Endurance</title>
+  <defs>
+    <linearGradient id="tile" x1="256" x2="256" y1="0" y2="512" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4a515c"/>
+      <stop offset="1" stop-color="#1f2329"/>
+    </linearGradient>
+    <linearGradient id="lit" x1="96" x2="416" y1="96" y2="416" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fff"/>
+      <stop offset="1" stop-color="#b7bdc7"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#tile)" rx="116"/>
+  <rect width="504" height="504" x="4" y="4" stroke="#fff" stroke-opacity=".14" stroke-width="8" rx="112"/>
+  <!-- The matrix: unlit cells are faint, the E is lit. -->
+  <g fill="#fff" fill-opacity=".1">
+    <rect width="56" height="56" x="162" y="162" rx="12"/>
+    <rect width="56" height="56" x="228" y="162" rx="12"/>
+    <rect width="56" height="56" x="294" y="162" rx="12"/>
+    <rect width="56" height="56" x="360" y="162" rx="12"/>
+    <rect width="56" height="56" x="360" y="228" rx="12"/>
+    <rect width="56" height="56" x="162" y="294" rx="12"/>
+    <rect width="56" height="56" x="228" y="294" rx="12"/>
+    <rect width="56" height="56" x="294" y="294" rx="12"/>
+    <rect width="56" height="56" x="360" y="294" rx="12"/>
+  </g>
+  <g fill="url(#lit)">
+    <rect width="56" height="56" x="96" y="96" rx="12"/>
+    <rect width="56" height="56" x="162" y="96" rx="12"/>
+    <rect width="56" height="56" x="228" y="96" rx="12"/>
+    <rect width="56" height="56" x="294" y="96" rx="12"/>
+    <rect width="56" height="56" x="360" y="96" rx="12"/>
+    <rect width="56" height="56" x="96" y="162" rx="12"/>
+    <rect width="56" height="56" x="96" y="228" rx="12"/>
+    <rect width="56" height="56" x="162" y="228" rx="12"/>
+    <rect width="56" height="56" x="228" y="228" rx="12"/>
+    <rect width="56" height="56" x="294" y="228" rx="12"/>
+    <rect width="56" height="56" x="96" y="294" rx="12"/>
+    <rect width="56" height="56" x="96" y="360" rx="12"/>
+    <rect width="56" height="56" x="162" y="360" rx="12"/>
+    <rect width="56" height="56" x="228" y="360" rx="12"/>
+    <rect width="56" height="56" x="294" y="360" rx="12"/>
+    <rect width="56" height="56" x="360" y="360" rx="12"/>
+  </g>
+</svg>

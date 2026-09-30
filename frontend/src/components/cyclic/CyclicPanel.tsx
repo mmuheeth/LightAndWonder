@@ -1,9 +1,11 @@
-import { Loader2, Radio, Square } from 'lucide-react'
+import { History, Loader2, Radio, Square } from 'lucide-react'
 
 import { CyclicRoundView } from '@/components/cyclic/CyclicRoundView'
+import { Section } from '@/components/layout/Section'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { EmptyState, Notice } from '@/components/ui/notice'
 import {
   useCyclicRounds,
   useCyclicStatus,
@@ -53,9 +55,9 @@ export function CyclicPanel() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <CardTitle className="flex-wrap gap-x-3 gap-y-1">
             <span className="flex items-center gap-2">
-              <Radio className="size-4" />
+              <Radio />
               Track cyclic messages
             </span>
             {status.data ? <PhaseBadge phase={status.data.phase} /> : null}
@@ -82,7 +84,7 @@ export function CyclicPanel() {
             finishes when it has had its loop. Starting the next spin ends it early.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
           {tracking ? (
             <Button variant="outline" onClick={() => stop.mutate()} disabled={stop.isPending}>
               {stop.isPending ? <Loader2 className="animate-spin" /> : <Square />}
@@ -107,40 +109,38 @@ export function CyclicPanel() {
             </p>
           ) : null}
           {status.data?.log_unreadable ? (
-            <p className="text-sm text-destructive">
+            <Notice tone="error">
               The game log cannot be read ({status.data.log_path}), so no spin will be noticed.
-            </p>
+            </Notice>
           ) : null}
-          {status.data?.problem ? <p className="text-sm text-destructive">{status.data.problem}</p> : null}
-          {error ? <p className="text-sm text-destructive">{error.message}</p> : null}
+          {status.data?.problem ? <Notice tone="error">{status.data.problem}</Notice> : null}
+          {error ? <Notice tone="error">{error.message}</Notice> : null}
           {status.isError ? (
-            <p className="text-sm text-destructive">Could not load the tracking status: {status.error.message}</p>
+            <Notice tone="error">Could not load the tracking status: {status.error.message}</Notice>
           ) : null}
         </CardContent>
       </Card>
 
       {current ? (
-        <section className="space-y-3">
-          <h3 className="font-heading text-base font-medium">Now</h3>
+        <Section title="Now">
           <CyclicRoundView key={current.id} round={current} live />
-        </section>
+        </Section>
       ) : null}
 
       {rounds.isError ? (
-        <p className="text-sm text-destructive">Could not load the spins: {rounds.error.message}</p>
+        <Notice tone="error">Could not load the spins: {rounds.error.message}</Notice>
       ) : rounds.isPending ? (
-        <p className="text-sm text-muted-foreground">Loading the spins…</p>
+        <EmptyState loading title="Loading the spins…" />
       ) : earlier.length === 0 && !current ? (
-        <p className="text-sm text-muted-foreground">
-          No spins tracked yet. Press Track Cyclic Messages, then spin the game (from the GAF tab, or on the game itself).
-        </p>
+        <EmptyState icon={History} title="No spins tracked yet">
+          Press Track Cyclic Messages, then spin the game (from the GAF tab, or on the game itself).
+        </EmptyState>
       ) : earlier.length > 0 ? (
-        <section className="space-y-3">
-          <h3 className="font-heading text-base font-medium">Earlier spins</h3>
+        <Section title="Earlier spins">
           {earlier.map((round) => (
             <CyclicRoundView key={round.id} round={round} />
           ))}
-        </section>
+        </Section>
       ) : null}
     </div>
   )

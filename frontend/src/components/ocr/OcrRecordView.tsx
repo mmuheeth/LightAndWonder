@@ -2,6 +2,7 @@ import { Loader2 } from 'lucide-react'
 
 import { roiImageSrc } from '@/api/roi'
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Notice } from '@/components/ui/notice'
 import { cn } from '@/lib/utils'
 import type { AmountRead, CashMeterReading, CreditMeterReading, OcrCrop, OcrRecord, TextRead } from '@/types/ocr'
 
@@ -91,11 +92,13 @@ function Reading() {
 function Warnings({ items }: { items: string[] }) {
   if (items.length === 0) return null
   return (
-    <ul className="space-y-1 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200">
-      {items.map((item) => (
-        <li key={item}>{item}</li>
-      ))}
-    </ul>
+    <Notice tone="warning">
+      <ul className="space-y-1">
+        {items.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+    </Notice>
   )
 }
 
@@ -112,8 +115,8 @@ function Amount({
   emptyLabel: string
 }) {
   return (
-    <div className="min-w-0 space-y-0.5 rounded-lg border bg-muted/30 px-3 py-2">
-      <p className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">{label}</p>
+    <div className="min-w-0 space-y-0.5 rounded-lg border bg-muted/60 px-3 py-2">
+      <p className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">{label}</p>
       {amount.text === null ? (
         <p className="py-1 text-sm text-muted-foreground italic">{emptyLabel}</p>
       ) : (

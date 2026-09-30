@@ -1,8 +1,9 @@
-import { Loader2, Spline } from 'lucide-react'
+import { History, Loader2, Waypoints } from 'lucide-react'
 
 import { PaylineResultCard } from '@/components/paylines/PaylineResultCard'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { EmptyState, Notice } from '@/components/ui/notice'
 import { useMinConfidence } from '@/hooks/useMinConfidence'
 import { useObsStatus } from '@/hooks/useObs'
 import { useEvaluatePaylines, usePaylineScore } from '@/hooks/usePaylines'
@@ -12,8 +13,8 @@ import { useGameContextStore } from '@/store/useGameContextStore'
 
 /**
  * Takes a screenshot, reads the symbols on it, and works out which paylines pay. What is shown is the
- * newest symbol reading (the Symbol tab's too), scored with the paytable the game log reported last.
- * A tile is read at the Symbol tab's confidence setting; this tab has none of its own.
+ * newest symbol reading (the Symbols tab's too), scored with the paytable the game log reported last.
+ * A tile is read at the Symbols tab's confidence setting; this tab has none of its own.
  */
 export function PaylinePanel() {
   const context = useGameContextStore((state) => state.context)
@@ -33,8 +34,8 @@ export function PaylinePanel() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Spline className="size-4" />
+          <CardTitle>
+            <Waypoints />
             Evaluate paylines
           </CardTitle>
           <CardDescription>
@@ -50,13 +51,13 @@ export function PaylinePanel() {
             .
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
           <div className="flex flex-wrap items-end gap-4">
             <Button
               onClick={() => context && evaluate.mutate({ context, minConfidence: minConfidence.value })}
               disabled={!context || !connected || !trained || evaluate.isPending}
             >
-              {evaluate.isPending ? <Loader2 className="animate-spin" /> : <Spline />}
+              {evaluate.isPending ? <Loader2 className="animate-spin" /> : <Waypoints />}
               Evaluate
             </Button>
           </div>
@@ -67,27 +68,29 @@ export function PaylinePanel() {
             <p className="text-xs text-muted-foreground">
               {model.data.state === 'training'
                 ? 'The symbol model is still training.'
-                : 'Train the symbol model in the Symbol tab first.'}
+                : 'Train the symbol model in the Symbols tab first.'}
             </p>
           ) : null}
-          {evaluate.error ? <p className="text-sm text-destructive">{evaluate.error.message}</p> : null}
+          {evaluate.error ? <Notice tone="error">{evaluate.error.message}</Notice> : null}
         </CardContent>
       </Card>
 
       {latest.isError ? (
-        <p className="text-sm text-destructive">Could not load the last reading: {latest.error.message}</p>
+        <Notice tone="error">Could not load the last reading: {latest.error.message}</Notice>
       ) : latest.isPending ? (
-        <p className="text-sm text-muted-foreground">Loading the last reading…</p>
+        <EmptyState loading title="Loading the last reading…" />
       ) : !latest.data ? (
-        <p className="text-sm text-muted-foreground">No paylines evaluated yet.</p>
+        <EmptyState icon={History} title="No paylines evaluated yet">
+          Press Evaluate to read the reels and find the lines that pay.
+        </EmptyState>
       ) : score.isError ? (
-        <p className="text-sm text-destructive">Could not score the paylines: {score.error.message}</p>
+        <Notice tone="error">Could not score the paylines: {score.error.message}</Notice>
       ) : score.data ? (
         <div className={cn('transition-opacity', stale && 'pointer-events-none opacity-50')} aria-busy={stale}>
           <PaylineResultCard key={score.data.reading_id} result={score.data} />
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground">Scoring the paylines…</p>
+        <EmptyState loading title="Scoring the paylines…" />
       )}
     </div>
   )

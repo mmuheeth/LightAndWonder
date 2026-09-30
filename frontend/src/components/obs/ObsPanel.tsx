@@ -1,12 +1,14 @@
 import { useState } from 'react'
-import { Camera, Loader2, Pencil, Plug, Unplug } from 'lucide-react'
+import { Camera, ImageOff, Loader2, Pencil, Plug, Unplug, Video } from 'lucide-react'
 
 import { obsScreenshotSrc } from '@/api/obs'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { WindowPicker } from '@/components/obs/WindowPicker'
+import { Section } from '@/components/layout/Section'
 import { Input } from '@/components/ui/input'
+import { EmptyState, Notice } from '@/components/ui/notice'
 import {
   useConnectObs,
   useDisconnectObs,
@@ -106,7 +108,7 @@ function ServerForm({ config, connected }: { config: ObsConfig; connected: boole
           Saving disconnects from the current server; press Connect afterwards.
         </p>
       ) : null}
-      {update.error ? <p className="text-sm text-destructive">{update.error.message}</p> : null}
+      {update.error ? <Notice tone="error">{update.error.message}</Notice> : null}
     </form>
   )
 }
@@ -129,7 +131,8 @@ export function ObsPanel() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle>
+            <Video />
             OBS Studio
             <StatusBadge connected={connected} recording={recording} unreachable={status.isError} />
           </CardTitle>
@@ -173,56 +176,61 @@ export function ObsPanel() {
               Screenshot
             </Button>
           </div>
-          {error ? <p className="text-sm text-destructive">{error.message}</p> : null}
-          <WindowPicker connected={connected} />
+          {error ? <Notice tone="error">{error.message}</Notice> : null}
+          <div className="border-t pt-4">
+            <WindowPicker connected={connected} />
+          </div>
           {config.data ? (
-            <ServerForm
-              key={`${config.data.host}:${config.data.port}`}
-              config={config.data}
-              connected={connected}
-            />
+            <div className="border-t pt-4">
+              <ServerForm
+                key={`${config.data.host}:${config.data.port}`}
+                config={config.data}
+                connected={connected}
+              />
+            </div>
           ) : config.isError ? (
-            <p className="text-sm text-destructive">
-              Could not load server settings: {config.error.message}
-            </p>
+            <Notice tone="error">Could not load server settings: {config.error.message}</Notice>
           ) : null}
         </CardContent>
       </Card>
 
-      <section className="space-y-3">
-        <h3 className="font-heading text-base font-medium">Recent screenshots</h3>
+      <Section title="Recent screenshots">
         {screenshots.isError ? (
-          <p className="text-sm text-destructive">
-            Could not load screenshots: {screenshots.error.message}
-          </p>
+          <Notice tone="error">Could not load screenshots: {screenshots.error.message}</Notice>
         ) : screenshots.data?.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No screenshots yet.</p>
+          <EmptyState icon={ImageOff} title="No screenshots yet">
+            Connect to OBS and press Screenshot.
+          </EmptyState>
         ) : (
-          <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
-            {screenshots.data?.map((shot) => (
-              <li key={shot.filename} className="space-y-1">
-                <a
-                  href={obsScreenshotSrc(shot)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="block overflow-hidden rounded-lg border bg-muted"
-                >
-                  {/* Natural aspect ratio, so the whole frame is visible, never cropped. */}
-                  <img
-                    src={obsScreenshotSrc(shot)}
-                    alt={`Screenshot taken at ${new Date(shot.created_at).toLocaleTimeString()}`}
-                    loading="lazy"
-                    className="h-auto w-full"
-                  />
-                </a>
-                <p className="truncate text-xs text-muted-foreground" title={shot.filename}>
-                  {new Date(shot.created_at).toLocaleString()}
-                </p>
-              </li>
-            ))}
-          </ul>
+          <Card>
+            <CardContent>
+              <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
+                {screenshots.data?.map((shot) => (
+                  <li key={shot.filename} className="space-y-1">
+                    <a
+                      href={obsScreenshotSrc(shot)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="block overflow-hidden rounded-lg border bg-muted shadow-card transition-shadow hover:shadow-raised"
+                    >
+                      {/* Natural aspect ratio, so the whole frame is visible, never cropped. */}
+                      <img
+                        src={obsScreenshotSrc(shot)}
+                        alt={`Screenshot taken at ${new Date(shot.created_at).toLocaleTimeString()}`}
+                        loading="lazy"
+                        className="h-auto w-full"
+                      />
+                    </a>
+                    <p className="truncate text-xs text-muted-foreground" title={shot.filename}>
+                      {new Date(shot.created_at).toLocaleString()}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
         )}
-      </section>
+      </Section>
     </div>
   )
 }

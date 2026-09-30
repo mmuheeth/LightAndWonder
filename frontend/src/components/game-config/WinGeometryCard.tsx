@@ -1,6 +1,7 @@
 import { Grid3x3 } from 'lucide-react'
 import { useState } from 'react'
 
+import { SubHeading } from '@/components/layout/Section'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
@@ -20,8 +21,8 @@ function LineGrid({ line, rows }: { line: number[]; rows: number }) {
           <span
             key={`${row}-${reel}`}
             className={cn(
-              'aspect-square rounded-md',
-              lineRow === row ? 'bg-foreground' : 'bg-muted',
+              'aspect-square rounded-md border',
+              lineRow === row ? 'border-foreground bg-foreground' : 'border-input bg-muted',
             )}
           />
         )),
@@ -73,10 +74,10 @@ export function WinGeometryCard({ geometry, summary }: WinGeometryCardProps) {
   const lines = summary.lines ?? geometry.active_set
 
   return (
-    <Card className="[--card-spacing:--spacing(6)]">
+    <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Grid3x3 className="size-4" aria-hidden />
+        <CardTitle>
+          <Grid3x3 aria-hidden />
           Win geometry
         </CardTitle>
         <CardDescription>Which payline set is in play, and where each of its lines runs</CardDescription>
@@ -119,9 +120,7 @@ export function WinGeometryCard({ geometry, summary }: WinGeometryCardProps) {
           <ul className="grid grid-cols-[repeat(auto-fill,minmax(9.5rem,1fr))] gap-x-6 gap-y-5 border-t pt-5">
             {shown.lines.map((line, index) => (
               <li key={index} className="space-y-1.5">
-                <p className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
-                  Line {index + 1}
-                </p>
+                <SubHeading>Line {index + 1}</SubHeading>
                 <LineGrid line={line} rows={geometry.rows} />
                 <p className="font-mono text-xs text-muted-foreground">
                   {line.map((row) => row + 1).join('')}

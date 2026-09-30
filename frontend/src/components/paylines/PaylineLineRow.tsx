@@ -79,7 +79,7 @@ function LineDetail({ result, line }: { result: PaylineResult; line: PaylineOutc
 export function PaylineLineRow({ result, line }: { result: PaylineResult; line: PaylineOutcome }) {
   const pays = line.pays > 0
   return (
-    <AccordionItem value={String(line.number)} className="rounded-lg border bg-card px-3 last:border-b">
+    <AccordionItem value={String(line.number)} className="rounded-lg border bg-card px-3 shadow-xs last:border-b">
       <AccordionTrigger className="flex-row-reverse gap-2.5 py-2.5 hover:no-underline">
         <span className="flex min-w-0 flex-1 items-center gap-2.5">
           <span
