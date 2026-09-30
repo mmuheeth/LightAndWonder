@@ -43,6 +43,21 @@ class Settings(BaseSettings):
     # (e.g. the game window) if it is resized. See ObsService.
     obs_screenshot_mode: Literal["native", "scene"] = "scene"
 
+    # GAF: the game is driven through NRobot.Server.exe (part of the AGF image), which hosts the
+    # Robot Framework keyword libraries and talks Thrift to the game. This is only where NRobot
+    # listens; the game's own host/port come from its config. Nothing here starts NRobot.
+    gaf_nrobot_host: str = "127.0.0.1"
+    gaf_nrobot_port: int = 8270
+    # Seconds one keyword may take. Connecting to a game that is not there fails after ~20s.
+    gaf_keyword_timeout: float = 30.0
+    # Seconds the status probe may take; the UI polls it, so it must answer inside the browser's timeout.
+    gaf_probe_timeout: float = 4.0
+    # Seconds a spin may keep playing before it is reported as "timeout" (e.g. a long bonus).
+    gaf_settle_timeout: float = 120.0
+    # A freshly launched game takes a while to accept the connection.
+    gaf_connect_attempts: int = 3
+    gaf_connect_retry_delay: float = 2.0
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     @property

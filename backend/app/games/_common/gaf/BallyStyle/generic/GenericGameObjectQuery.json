@@ -1,0 +1,400 @@
+{
+    "IDeck_CollectButton": {
+        "GameObjectIdentifier": null,
+        "TypeFilter": {
+            "TypeToFind": "GDK.UI.Buttons.CollectTrayButton",
+            "MemberName": null,
+            "MemberValueToCompare": null,
+            "MemberDataType": null,
+            "MemberType": 0
+        },
+        "SceneToSearch": null
+    },
+    "Help_ExitButton_MainScreen": {
+        "GameObjectIdentifier": "Help/CommonUIHelp/HelpNavigationButtons/Layout/ExitButton",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "Help_ExitButton_Ideck": {
+        "GameObjectIdentifier": "Content/ExitButton",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "Help_NextButton_MainScreen": {
+        "GameObjectIdentifier": "NextButton",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "Help_NextButton_Ideck": {
+        "GameObjectIdentifier": "NextButton",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "Help_PreviousButton_MainScreen": {
+        "GameObjectIdentifier": "PrevButton",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "Help_PreviousButton_Ideck": {
+        "GameObjectIdentifier": "PrevButton",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "Ideck_AutoPlayButton": {
+        "GameObjectIdentifier": "PlayerInitiatedAutoPlayButton",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "Ideck_VolumeButton": {
+        "GameObjectIdentifier": "VolumeSliderWithButton",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "IDeck_YesButton": {
+        "GameObjectIdentifier": "YesButton",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "IDeck_NoButton": {
+        "GameObjectIdentifier": "NoButton",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "IDeck_SpinButton": {
+        "GameObjectIdentifier": "SpinButton",
+        "TypeFilter": {
+            "TypeToFind": "GDK.UI.Buttons.StartButton",
+            "MemberName": null,
+            "MemberValueToCompare": null,
+            "MemberDataType": null,
+            "MemberType": 0
+        },
+        "SceneToSearch": null
+    },
+    "IDeck_MaxBetButton": {
+        "GameObjectIdentifier": null,
+        "TypeFilter": {
+            "TypeToFind": "GDK.IDeck.MaxBetButton",
+            "MemberName": null,
+            "MemberValueToCompare": null,
+            "MemberDataType": null,
+            "MemberType": 0
+        },
+        "SceneToSearch": null
+    },
+    "DenomChangeButton": {
+        "GameObjectIdentifier": null,
+        "TypeFilter": {
+            "TypeToFind": "GDK.Button.BasicButtonView",
+            "MemberName": "controlName",
+            "MemberValueToCompare": "denom_window",
+            "MemberDataType": "ControlName",
+            "MemberType": 0
+        },
+        "SceneToSearch": null
+    },
+    "ActiveDenomText": {
+        "GameObjectIdentifier": "Meter_Denom/ActiveDenom/DenomText",
+        "SceneToSearch": null
+    },
+    "IDeck_BonusSuperCol1": {
+        "GameObjectIdentifier": "IDeckCol1",
+        "TypeFilter": null,
+        "SceneToSearch": null
+        },
+    "IDeck_BonusSuperCol2": {
+        "GameObjectIdentifier": "IDeckCol2",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "IDeck_BonusSuperCol3": {
+        "GameObjectIdentifier": "IDeckCol3",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "IDeck_BonusSuperCol4": {
+        "GameObjectIdentifier": "IDeckCol4",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "IDeck_BonusSuperCol5": {
+        "GameObjectIdentifier": "IDeckCol5",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "IDeck_GambleButton": {
+        "GameObjectIdentifier": "DoubleUp_BB3Style/DoubleUp_ButtonPanel/GambleButton",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "IDeck_TakeWinButton": {
+        "GameObjectIdentifier": "DoubleUp_BB3Style/DoubleUp_ButtonPanel/TakeWinButton",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "IDeck_BonusSuperTakeWin": {
+        "GameObjectIdentifier": "TakeWin_Container/Container/TakeWin",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "GaffDealerCard": {
+        "GameObjectIdentifier": "RedBlackDoubleUp/Canvas/MainFrame/Others/GaffText",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "GambleAmountMeterLabel": {
+        "GameObjectIdentifier": "Canvas/MainFrame/RedGrp/GambleGrp/Gamble Top",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "GambleAmountMeterValue": {
+        "GameObjectIdentifier": "Canvas/MainFrame/RedGrp/GambleGrp/GambleAmount/Meter/AmountText",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "IDeck_Black": {
+        "GameObjectIdentifier": "RedBlackDoubleUp/iDeck/Canvas/Gamble_Container/Black_Container/Color_Container/Black",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "IDeck_Club": {
+        "GameObjectIdentifier": "RedBlackDoubleUp/iDeck/Canvas/Gamble_Container/Black_Container/Suit_Container/Club_Container/Club",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "DoublupScreen_Spade": {
+        "GameObjectIdentifier": "Canvas/MainFrame/BlackGrp/Spade",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "TopRow_Second_WagerButton": {
+        "GameObjectIdentifier": null,
+        "TypeFilter": {
+            "TypeToFind": "GDK.IDeck.BaseButton",
+            "MemberName": "ButtonID",
+            "MemberValueToCompare": "4",
+            "MemberDataType": "System.Int32",
+            "MemberType": 1
+        },
+        "SceneToSearch": null
+    },
+    "BottomRow_Second_WagerButton": {
+        "GameObjectIdentifier": null,
+        "TypeFilter": {
+            "TypeToFind": "GDK.IDeck.BaseButton",
+            "MemberName": "ButtonID",
+            "MemberValueToCompare": "5",
+            "MemberDataType": "System.Int32",
+            "MemberType": 1
+        },
+        "SceneToSearch": null
+    },
+    "CreditMeter_Label": {
+        "GameObjectIdentifier": "Meters_CashCredit/Meter_CashCredit/Meter_CashCredit_Label",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "CreditMeter_Value": {
+        "GameObjectIdentifier": "Meters_CashCredit/Meter_CashCredit/Meter_CashCredit_Value",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "CreditMeter_Label_Small": {
+        "GameObjectIdentifier": "Meters_CashCredit/Meter_CashCredit_Small/Meter_CashCredit_Small_Label",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "CreditMeter_Value_Small": {
+        "GameObjectIdentifier": "Meters_CashCredit/Meter_CashCredit_Small/Meter_CashCredit_Small_Value",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "BetMeter_Label": {
+        "GameObjectIdentifier": "Meters_Bet/Meter_Bet/Meter_Bet_Label",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "BetMeter_Value": {
+        "GameObjectIdentifier": "Meters_Bet/Meter_Bet/Meter_Bet_Value",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "BetMeter_Label_Small": {
+        "GameObjectIdentifier": "Meters_Bet/Meter_Bet_Small/Meter_Bet_Small_Label",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "BetMeter_Value_Small": {
+        "GameObjectIdentifier": "Meters_Bet/Meter_Bet_Small/Meter_Bet_Small_Value",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "WinMeter_Label": {
+        "GameObjectIdentifier": "Meters_Win/Meter_Win/Meter_Win_Label",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "WinMeter_Value": {
+        "GameObjectIdentifier": "Meters_Win/Meter_Win/Meter_Win_Value",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "WinMeter_Label_Small": {
+        "GameObjectIdentifier": "Meters_Win/Meter_Win_Small/Meter_Win_Small_Label",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "WinMeter_Value_Small": {
+        "GameObjectIdentifier": "Meters_Win/Meter_Win_Small/Meter_Win_Small_Value",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "CollectMeter_Label": {
+        "GameObjectIdentifier": "Meters_Collect/Meter_Collect/Meter_Collect_Label",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "CollectMeter_Value": {
+        "GameObjectIdentifier": "Meters_Collect/Meter_Collect/Meter_Collect_Value",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "CollectMeter_Label_Small": {
+        "GameObjectIdentifier": "Meters_Collect/Meter_Collect_Small/Meter_Collect_Small_Label",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "CollectMeter_Value_Small": {
+        "GameObjectIdentifier": "Meters_Collect/Meter_Collect_Small/Meter_Collect_Small_Value",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "MessageArea1": {
+        "GameObjectIdentifier": "ShuffleMessageBars/Pf_ShuffleMessageBar_Left/Content/SrcText(Clone)",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "MessageArea2": {
+        "GameObjectIdentifier": "ShuffleMessageBars/Pf_ShuffleMessageBar_Center/Content/SrcText(Clone)",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "Minimum_Bet_Text": {
+        "GameObjectIdentifier": "MinBetText",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "Malfunction_Disclaimer": {
+        "GameObjectIdentifier": "MalfunctionText",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "SpinHistoryButton": {
+        "GameObjectIdentifier": "History/History_Spin_Button",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "PauseHistoryButton": {
+        "GameObjectIdentifier": "History/PauseHistoryButton",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "NextHistoryButton": {
+        "GameObjectIdentifier": "History/NextHistoryButton",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "ExitHistoryButton": {
+        "GameObjectIdentifier": "History/ExitHistoryButton",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "HistoryReelCover": {
+        "GameObjectIdentifier": "History/HistoryResultsCover",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "GambleMessage": {
+        "GameObjectIdentifier": "MessageBarClientSet/MessageBarOne/Content/Text(Clone)",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "HistorySummaryText": {
+            "GameObjectIdentifier": "History/HistorySummary/HistorySummaryText",
+            "TypeFilter": null,
+            "SceneToSearch": null
+        },
+    "HistoryGambleButton": {
+            "GameObjectIdentifier": "Gamble/GambleConfirmationNoPanelOffer/HistoryDoubleUpOfferButton",
+            "TypeFilter": null,
+            "SceneToSearch": null
+        },
+    "GambleHistoryButton": {
+        "GameObjectIdentifier": "Gamble/GambleConfirmationNoPanelOffer/HistoryDoubleUpOfferButton",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "CreditMeterDollar": {
+        "GameObjectIdentifier": "Canvas/Bet Meters/Credit Meter/Brightness Canvas Group/Credit Text Dollar",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "CreditMeterCents": {
+        "GameObjectIdentifier": "Canvas/Bet Meters/Credit Meter/Brightness Canvas Group/Credit Text Cents",	
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "BetMeterDollar": {
+        "GameObjectIdentifier": "Canvas/Bet Meters/Bet Meter/Brightness Canvas Group/Bet Text Dollar",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "BetMeterCents": {
+        "GameObjectIdentifier": "Canvas/Bet Meters/Bet Meter/Brightness Canvas Group/Bet Text Cents",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "WinMeterDollar": {
+        "GameObjectIdentifier": "Canvas/Bet Meters/Win Meter/Win Text Dollar",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "WinMeterCents": {
+        "GameObjectIdentifier": "Canvas/Bet Meters/Win Meter/Win Text Cents",
+        "TypeFilter": null,
+        "SceneToSearch": null
+     },
+    "CreditMeterTouchArea": {
+        "GameObjectIdentifier": "Canvas/Bet Meters/Credit Meter/Credit Meter Touch Area",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "SelectPanel": {
+        "GameObjectIdentifier": "SelectDenomPanelMainScreen/SelectPanel",
+        "TypeFilter": null,
+        "SceneToSearch": null
+    },
+    "ButtonPanelManager": {
+        "GameObjectIdentifier": null,
+        "TypeFilter": {
+            "TypeToFind": "GDK.IDeck.ButtonPanelManager"
+        },
+        "SceneToSearch": null
+    },
+    "TemplateObjectKeepLast": {
+      "GameObjectIdentifier": null,
+      "TypeFilter": null,
+      "SceneToSearch": null
+    },
+    "TemplateObjectTwoKeepLast": {
+      "GameObjectIdentifier": null,
+      "TypeFilter": {
+        "TypeToFind": "",
+        "MemberName": "",
+        "MemberValueToCompare": "",
+        "MemberDataType": "",
+        "MemberType": 0
+      },
+      "SceneToSearch": null
+    }
+}

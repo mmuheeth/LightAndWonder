@@ -3,10 +3,12 @@ from pathlib import Path
 
 from app.config.settings import Settings, get_settings
 from app.controllers.game_config_controller import GameConfigController
+from app.controllers.gaf_controller import GafController
 from app.controllers.game_context_controller import GameContextController
 from app.controllers.health_controller import HealthController
 from app.controllers.obs_controller import ObsController
 from app.controllers.roi_controller import RoiController
+from app.services.gaf_service import GafService
 from app.services.game_config_service import GameConfigService
 from app.services.game_context_service import GameContextService
 from app.services.health_service import HealthService
@@ -14,6 +16,7 @@ from app.services.obs_service import ObsService
 from app.services.roi_service import RoiService
 from app.utils.game_config import active_log_path
 from app.utils.log_watcher import LogWatcher
+from app.utils.nrobot import NRobot
 from app.services.obs_window_service import ObsWindowService
 
 BACKEND_DIR = Path(__file__).resolve().parents[2]
@@ -92,5 +95,27 @@ def get_roi_controller() -> RoiController:
             obs=get_obs_service(),
             game_context=get_game_context_service(),
             captures_dir=_backend_path(get_settings().obs_captures_dir),
+        )
+    )
+
+
+@lru_cache
+def get_gaf_controller() -> GafController:
+    """Shared, because the service remembers which game its session was opened for."""
+    settings = get_settings()
+    nrobot = NRobot(
+        f"http://{settings.gaf_nrobot_host}:{settings.gaf_nrobot_port}",
+        timeout=settings.gaf_keyword_timeout,
+    )
+    probe_nrobot = NRobot(nrobot.base_url, timeout=settings.gaf_probe_timeout)
+    return GafController(
+        gaf_service=GafService(
+            nrobot=nrobot,
+            probe_nrobot=probe_nrobot,
+            game_context=get_game_context_service(),
+            base_dir=BACKEND_DIR,
+            settle_timeout=settings.gaf_settle_timeout,
+            connect_attempts=settings.gaf_connect_attempts,
+            connect_retry_delay=settings.gaf_connect_retry_delay,
         )
     )

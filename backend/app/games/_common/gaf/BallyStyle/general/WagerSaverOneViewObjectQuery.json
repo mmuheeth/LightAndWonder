@@ -1,0 +1,45 @@
+{
+    "WagerSaverQuery": {
+        "CollectButton": {
+            "GameObjectIdentifier": "WagerSaverButtonPanel/WagerSaverCollectButton"
+        },
+        "ReturnToGameButton": {
+            "GameObjectIdentifier": "WagerSaverButtonPanel/WagerSaverReturnButton"
+        },
+        "PlayWagerSaverButton": {
+            "GameObjectIdentifier": "WagerSaverButtonPanel/WagerSaverPlayButton"
+        },
+        "InstructionText": {
+            "GameObjectIdentifier": "WagerSaverButtonPanel/InstructionsLabel/TextMeshPro"
+        },
+        "WagerSaverParent": {
+            "TypeFilter": {
+                "TypeToFind": "Wms.WagerGame.OneViewWagerSaverViewController"
+            }
+        },
+        "CreditMeter": {
+            "label": null,
+            "value": null,
+            "GameObjectIdentifier": null,
+            "TypeFilter": null,
+            "SceneToSearch": null
+        },
+        "BetInfoMeter": {
+            "label": null,
+            "value": null,
+            "GameObjectIdentifier": null,
+            "TypeFilter": null,
+            "SceneToSearch": null
+        },
+        "WagerSaverBackgroundSprite": {
+            "GameObjectIdentifier": null,
+            "TypeFilter": null,
+            "SceneToSearch": null
+        },
+        "WagerSaverPointer": {
+            "GameObjectIdentifier": null,
+            "TypeFilter": null,
+            "SceneToSearch": null
+        }
+    }
+}

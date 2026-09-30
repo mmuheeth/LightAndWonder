@@ -1,0 +1,53 @@
+{
+    "IDeckWagerButtonQuery": {
+        "MechanicalSpinBtnID": 12
+    },
+    "NonWagerIDeckButtonQuery": {
+        "TakeWinButton": {
+            "GameObjectIdentifier": "TakeWinButton",
+            "TypeFilter": null,
+            "SceneToSearch": null
+        },
+        "GambleButton": {
+            "GameObjectIdentifier": "GambleButton",
+            "TypeFilter": null,
+            "SceneToSearch": null
+        }
+    },
+    "ThemeFrontPanelMsgQuery": {
+        "MessageArea1": [
+            {
+                "GameObjectIdentifier": "GamePaysXXXListener/GamePaysXXX",
+                "TypeFilter": null,
+                "SceneToSearch": "ThemeMain"
+            },
+            {
+                "GameObjectIdentifier": "GameIdleTextMsgs",
+                "TypeFilter": null,
+                "SceneToSearch": "ThemeMain"
+            }
+        ]
+    },
+    "PlayerInfoMeterQuery": {
+        "CreditMeter": {
+            "GameObjectIdentifier": "Meter_CashCredit",
+            "TypeFilter": null,
+            "SceneToSearch": "ThemeMain"
+        },
+        "WinMeter": {
+            "GameObjectIdentifier": "Meter_Win",
+            "TypeFilter": null,
+            "SceneToSearch": "ThemeMain"
+        },
+        "BetMeter": {
+            "GameObjectIdentifier": "Meter_Bet",
+            "TypeFilter": null,
+            "SceneToSearch": "ThemeMain"
+        },
+        "CollectMeter": {
+            "GameObjectIdentifier": "Meter_Collect",
+            "TypeFilter": null,
+            "SceneToSearch": "ThemeMain"
+        }
+    }
+}

@@ -1,0 +1,36 @@
+{
+    "ProgressiveOdometer": [
+        {
+            "GameObjectIdentifier": "ProgressiveMeters/9qh_ProgressiveOdometer/OdometerView",
+            "TypeFilter": null,
+            "SceneToSearch": "ThemeMain"
+        },
+        {
+            "GameObjectIdentifier": "ProgressiveMeters/8qh_ProgressiveOdometer/OdometerView",
+            "TypeFilter": null,
+            "SceneToSearch": "ThemeMain"
+        },
+        {
+            "GameObjectIdentifier": "ProgressiveMeters/7qh_ProgressiveOdometer/OdometerView",
+            "TypeFilter": null,
+            "SceneToSearch": "ThemeMain"
+        },
+        {
+            "GameObjectIdentifier": "ProgressiveMeters/6qh_ProgressiveOdometer/OdometerView",
+            "TypeFilter": null,
+            "SceneToSearch": "ThemeMain"
+        },
+        {
+            "GameObjectIdentifier": "ProgressiveMeters/5qh_ProgressiveOdometer/OdometerView",
+            "TypeFilter": null,
+            "SceneToSearch": "ThemeMain"
+        }
+    ],
+    "ProgressiveManager": {
+        "GameObjectIdentifier": null,
+        "TypeFilter": {
+            "TypeToFind": "SG.Game.Meters.ProgressiveOdometerManager"
+        },
+        "SceneToSearch": "ThemeMain"
+    }
+}

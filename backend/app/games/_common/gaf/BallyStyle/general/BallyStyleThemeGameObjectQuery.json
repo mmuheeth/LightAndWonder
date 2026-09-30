@@ -1,0 +1,615 @@
+{ 
+    "NonWagerIDeckButtonQuery": {
+        "TakeWinButton": {
+            "GameObjectIdentifier": "LeftButtonPanelLayout/BottomRow/TakeWinButton",
+            "TypeFilter": null,
+            "SceneToSearch": null
+        },
+        "GambleButton": {
+            "GameObjectIdentifier": "LeftButtonPanelLayout/TopRow/GambleButton",
+            "TypeFilter": null,
+            "SceneToSearch": null
+        },
+        "TrayButtonQuery": {
+            "InfoButton": {
+                "GameObjectIdentifier": null,
+                "TypeFilter": {
+                    "TypeToFind": "GDK.UI.Buttons.PaysTrayButton",
+                    "MemberName": null,
+                    "MemberValueToCompare": null,
+                    "MemberDataType": null,
+                    "MemberType": 0
+                },
+                "SceneToSearch": null
+            },
+            "ServiceButton": {
+                "GameObjectIdentifier": null,
+                "TypeFilter": {
+                    "TypeToFind": "GDK.UI.Buttons.ServiceTrayButton",
+                    "MemberName": null,
+                    "MemberValueToCompare": null,
+                    "MemberDataType": null,
+                    "MemberType": 0
+                },
+                "SceneToSearch": null
+            },
+            "CollectButton": {
+                "GameObjectIdentifier": null,
+                "TypeFilter": {
+                    "TypeToFind": "GDK.UI.Buttons.CollectTrayButton",
+                    "MemberName": null,
+                    "MemberValueToCompare": null,
+                    "MemberDataType": null,
+                    "MemberType": 0
+                },
+                "SceneToSearch": null
+            },
+            "LanguageButton": {
+                "GameObjectIdentifier": null,
+                "TypeFilter": {
+                    "TypeToFind": "GDK.UI.Buttons.LanguageTrayButton",
+                    "MemberName": null,
+                    "MemberValueToCompare": null,
+                    "MemberDataType": null,
+                    "MemberType": 0
+                },
+                "SceneToSearch": null
+            },
+            "SelectConfirmationYesButton": {
+                "GameObjectIdentifier": "ConfirmationOverlay/YesButton",
+                "TypeFilter": null,
+                "SceneToSearch": null
+            },
+            "SelectConfirmationNoButton": {
+                "GameObjectIdentifier": "ConfirmationOverlay/NoButton",
+                "TypeFilter": null,
+                "SceneToSearch": null
+            }
+        }
+    },
+    "IDeckWagerButtonQuery": {
+        "MechanicalSpinBtnID": 12,
+        "BottomRowWagerButtonIDs": [
+            3,
+            5,
+            7,
+            9,
+            11
+        ],
+        "TopRowWagerButtonIDs": [
+            2,
+            4,
+            6,
+            8,
+            10
+        ],
+        "WagerButton": {
+            "GameObjectIdentifier": null,
+            "TypeFilter": {
+                "TypeToFind": "GDK.UI.Buttons.WagerButtonFourState",
+                "MemberName": "ButtonID",
+                "MemberValueToCompare": "0",
+                "MemberDataType": "System.Int32",
+                "MemberType": 1
+            },
+            "SceneToSearch": null
+        },
+        "MaxBetButton": {
+            "GameObjectIdentifier": null,
+            "TypeFilter": {
+                "TypeToFind": "GDK.IDeck.MaxBetButton",
+                "MemberName": null,
+                "MemberValueToCompare": null,
+                "MemberDataType": null,
+                "MemberType": 0
+            },
+            "SceneToSearch": null
+        }
+    },
+    "SuitGambleQuery": {
+        "GambleButton": {
+            "Red": {
+                "GameObjectIdentifier": "RedBlackDoubleUp/Canvas/MainFrame/RedGrp/Red",
+                "TypeFilter": null,
+                "SceneToSearch": null
+            },
+            "Heart": {
+                "GameObjectIdentifier": "RedBlackDoubleUp/Canvas/MainFrame/RedGrp/Heart",
+                "TypeFilter": null,
+                "SceneToSearch": null
+            },
+            "Diamond": {
+                "GameObjectIdentifier": "RedBlackDoubleUp/Canvas/MainFrame/RedGrp/Diamond",
+                "TypeFilter": null,
+                "SceneToSearch": null
+            },
+            "Black": {
+                "GameObjectIdentifier": "RedBlackDoubleUp/Canvas/MainFrame/BlackGrp/Black",
+                "TypeFilter": null,
+                "SceneToSearch": null
+            },
+            "Club": {
+                "GameObjectIdentifier": "RedBlackDoubleUp/Canvas/MainFrame/BlackGrp/Club",
+                "TypeFilter": null,
+                "SceneToSearch": null
+            },
+            "Spade": {
+                "GameObjectIdentifier": "RedBlackDoubleUp/Canvas/MainFrame/BlackGrp/Spade",
+                "TypeFilter": null,
+                "SceneToSearch": null
+            }
+        },
+        "MessageArea1": {
+            "GameObjectIdentifier": "ShuffleMessageBars/Pf_ShuffleMessageBar_Left/Content/SrcText(Clone)",
+            "TypeFilter": null,
+            "SceneToSearch": null
+        },
+        "MessageArea2": {
+            "GameObjectIdentifier": "ShuffleMessageBars/Pf_ShuffleMessageBar_Center/Content/SrcText(Clone)",
+            "TypeFilter": null,
+            "SceneToSearch": null
+        },
+        "GaffDealerCard": {
+            "GameObjectIdentifier": "RedBlackDoubleUp/Canvas/MainFrame/Others/GaffText",
+            "TypeFilter": null,
+            "SceneToSearch": null
+        },
+        "GambleAmountMeter": {
+            "label": {
+                "GameObjectIdentifier": "Canvas/MainFrame/RedGrp/GambleGrp/Gamble Top",
+                "TypeFilter": null,
+                "SceneToSearch": null
+            },
+            "value": {
+                "GameObjectIdentifier": "Canvas/MainFrame/RedGrp/GambleGrp/GambleAmount/Meter",
+                "TypeFilter": null,
+                "SceneToSearch": null
+            }
+        },
+        "ToWinSuitMeter": {
+            "label": {
+                "GameObjectIdentifier": "Canvas/MainFrame/BlackGrp/ToWin Suit/ToWin Top",
+                "TypeFilter": null,
+                "SceneToSearch": null
+            },
+            "value": {
+                "GameObjectIdentifier": "Canvas/MainFrame/BlackGrp/ToWin Suit/ToWinSuitAmount/Meter",
+                "TypeFilter": null,
+                "SceneToSearch": null
+            }
+        },
+        "ToWinRedBlackMeter": {
+            "label": {
+                "GameObjectIdentifier": "Canvas/MainFrame/BlackGrp/ToWin RedBlack/ToWin Top",
+                "TypeFilter": null,
+                "SceneToSearch": null
+            },
+            "value": {
+                "GameObjectIdentifier": "Canvas/MainFrame/BlackGrp/ToWin RedBlack/ToWinRedBlackAmount/Meter",
+                "TypeFilter": null,
+                "SceneToSearch": null
+            }
+        },
+        "GaffButton": {
+            "GameObjectIdentifier": "Canvas/MainFrame/Others/GaffButton",
+            "TypeFilter": null,
+            "SceneToSearch": null
+        }
+    },
+    "SuitGambleIDeckButtonQuery": {
+        "Red": {
+            "GameObjectIdentifier": "RedBlackDoubleUp/iDeck/Canvas/Gamble_Container/Red_Container/Color_Container/Red",
+            "TypeFilter": null,
+            "SceneToSearch": null
+        },
+        "Heart": {
+            "GameObjectIdentifier": "RedBlackDoubleUp/iDeck/Canvas/Gamble_Container/Red_Container/Suit_Container/Heart_Container/Heart",
+            "TypeFilter": null,
+            "SceneToSearch": null
+        },
+        "Diamond": {
+            "GameObjectIdentifier": "RedBlackDoubleUp/iDeck/Canvas/Gamble_Container/Red_Container/Suit_Container/Diamond_Container/Diamond",
+            "TypeFilter": null,
+            "SceneToSearch": null
+        },
+        "Black": {
+            "GameObjectIdentifier": "RedBlackDoubleUp/iDeck/Canvas/Gamble_Container/Black_Container/Color_Container/Black",
+            "TypeFilter": null,
+            "SceneToSearch": null
+        },
+        "Club": {
+            "GameObjectIdentifier": "RedBlackDoubleUp/iDeck/Canvas/Gamble_Container/Black_Container/Suit_Container/Club_Container/Club",
+            "TypeFilter": null,
+            "SceneToSearch": null
+        },
+        "Spade": {
+            "GameObjectIdentifier": "RedBlackDoubleUp/iDeck/Canvas/Gamble_Container/Black_Container/Suit_Container/Spade_Container/Spade",
+            "TypeFilter": null,
+            "SceneToSearch": null
+        },
+        "TakeWin": {
+            "GameObjectIdentifier": "RedBlackDoubleUp/iDeck/Canvas/Gamble_Container/TakeWin_Container/Container/TakeWin",
+            "TypeFilter": null,
+            "SceneToSearch": null
+        }
+    },
+    "ThemeFrontPanelMsgQuery": {
+        "MessageArea1": [
+            {
+                "GameObjectIdentifier": "GamePaysXXXListener/GamePaysXXX",
+                "TypeFilter": {
+                    "TypeToFind": "GDK.Widgets.GameIdleText.GameIdleTextCycler"
+                },
+                "SceneToSearch": null
+            },
+            {
+                "GameObjectIdentifier": "GameIdleTextMsgs",
+                "TypeFilter": {
+                    "TypeToFind": "GDK.Widgets.GameIdleText.GameIdleTextCycler"
+                },
+                "SceneToSearch": null
+            },
+            {
+                "GameObjectIdentifier": "GoodLuck_Label",
+                "TypeFilter": {
+                    "TypeToFind": "GDK.Widgets.GameIdleText.GameIdleTextCycler"
+                },
+                "SceneToSearch": null
+            }
+        ],
+        "MessageArea2": null,
+        "MessageArea3": null,
+        "MessageAreaReserved": null
+    },
+    "FreeSpinButtonQuery": {
+        "FreeSpinGaffButtonToggle": {
+            "GameObjectIdentifier": null,
+            "TypeFilter": {
+                "TypeToFind": "GDK.Button.BasicButtonView",
+                "MemberName": "controlName",
+                "MemberValueToCompare": "fs_gaff_toggle_button",
+                "MemberDataType": "ControlName",
+                "MemberType": 0
+            },
+            "SceneToSearch": null
+        }
+    },
+    "FullGafferQuery": {
+        "NumberPanelEnter": {
+            "GameObjectIdentifier": "Btn_Enter",
+            "TypeFilter": null,
+            "SceneToSearch": null
+        },
+        "NumberPanelReset": {
+            "GameObjectIdentifier": "Btn_Reset",
+            "TypeFilter": null,
+            "SceneToSearch": null
+        },
+        "NumberPanelClear": {
+            "GameObjectIdentifier": "Btn_Clear",
+            "TypeFilter": null,
+            "SceneToSearch": null
+        },
+        "NumberPanelBack": {
+            "GameObjectIdentifier": "Btn_Back",
+            "TypeFilter": null,
+            "SceneToSearch": null
+        },
+        "Exit": {
+            "GameObjectIdentifier": "StopGaff",
+            "TypeFilter": null,
+            "SceneToSearch": null
+        },
+        "Commit": {
+            "GameObjectIdentifier": "CommitButton",
+            "TypeFilter": null,
+            "SceneToSearch": null
+        },
+        "Next": {
+            "GameObjectIdentifier": "NextButton",
+            "TypeFilter": null,
+            "SceneToSearch": null
+        },
+        "Prev": {
+            "GameObjectIdentifier": "PrevButton",
+            "TypeFilter": null,
+            "SceneToSearch": null
+        },
+        "NumberPanelNumericBtns": [
+            {
+                "GameObjectIdentifier": "Btn_0",
+                "TypeFilter": null,
+                "SceneToSearch": null
+            },
+            {
+                "GameObjectIdentifier": "Btn_1",
+                "TypeFilter": null,
+                "SceneToSearch": null
+            },
+            {
+                "GameObjectIdentifier": "Btn_2",
+                "TypeFilter": null,
+                "SceneToSearch": null
+            },
+            {
+                "GameObjectIdentifier": "Btn_3",
+                "TypeFilter": null,
+                "SceneToSearch": null
+            },
+            {
+                "GameObjectIdentifier": "Btn_4",
+                "TypeFilter": null,
+                "SceneToSearch": null
+            },
+            {
+                "GameObjectIdentifier": "Btn_5",
+                "TypeFilter": null,
+                "SceneToSearch": null
+            },
+            {
+                "GameObjectIdentifier": "Btn_6",
+                "TypeFilter": null,
+                "SceneToSearch": null
+            },
+            {
+                "GameObjectIdentifier": "Btn_7",
+                "TypeFilter": null,
+                "SceneToSearch": null
+            },
+            {
+                "GameObjectIdentifier": "Btn_8",
+                "TypeFilter": null,
+                "SceneToSearch": null
+            },
+            {
+                "GameObjectIdentifier": "Btn_9",
+                "TypeFilter": null,
+                "SceneToSearch": null
+            }
+        ],
+        "NumberPanelTextBox": {
+            "GameObjectIdentifier": "Canvas/Gaffer_Main_Node/Numbers_Panel/NumbersPanelTextBox/NumberText",
+            "TypeFilter": null,
+            "SceneToSearch": null
+        },
+        "Status": {
+            "GameObjectIdentifier": "Canvas/Gaffer_Main_Node/Status Bar/Status Text",
+            "TypeFilter": null,
+            "SceneToSearch": null
+        }
+    },
+    "PlayerInfoMeterQuery": {
+        "CreditMeter": {
+            "GameObjectIdentifier": "Basic Meter Bundle/Meters_CashCredit/Meter_CashCredit"
+        },
+        "WinMeter": {
+            "GameObjectIdentifier": "Basic Meter Bundle/Meters_Win/Meter_Win"
+        },
+        "BetMeter": {
+            "GameObjectIdentifier": "Basic Meter Bundle/Meters_Bet/Meter_Bet"
+        },
+        "CollectMeter": {
+            "GameObjectIdentifier": "Basic Meter Bundle/Meters_Collect/Meter_Collect"
+        },
+        "CashCreditMeter_Border": {
+            "GameObjectIdentifier": "CommonUIMeters/Art/Meter_Layout/Meter_CashCredit_Art"
+        },
+        "WinCollectMeter_Border": {
+            "GameObjectIdentifier": "CommonUIMeters/Art/Meter_Layout/Meter_WinCollect_Art"
+        },
+        "BetMeter_Border": {
+            "GameObjectIdentifier": "CommonUIMeters/Art/Meter_Layout/Meter_Bet_Art"
+        },
+        "MeterWindowBorder": {
+            "GameObjectIdentifier": "WindowBorder"
+        },
+        "MeterLeftDivider": {
+            "GameObjectIdentifier": "LDivider"
+        },
+        "MeterMiddleDivider": {
+            "GameObjectIdentifier": "MDivider"
+        },
+        "MeterRightDivider": {
+            "GameObjectIdentifier": "RDivider"
+        }
+    },
+    "AutoCasionQuery": {
+        "StartAutoCasino": {
+            "GameObjectIdentifier": null,
+            "TypeFilter": {
+                "TypeToFind": "GDK.Button.BasicButtonView",
+                "MemberName": "controlName",
+                "MemberValueToCompare": "autocasino_start_button",
+                "MemberDataType": "ControlName",
+                "MemberType": 0
+            },
+            "SceneToSearch": null
+        },
+        "StopAutoCasino": {
+            "GameObjectIdentifier": "StopAutoCasinoButton",
+            "TypeFilter": null,
+            "SceneToSearch": null
+        },
+        "AutoCasinoOptions": {
+            "GameObjectIdentifier": null,
+            "TypeFilter": {
+                "TypeToFind": "GDK.Button.BasicButtonView",
+                "MemberName": "controlName",
+                "MemberValueToCompare": "autocasino_options_button",
+                "MemberDataType": "ControlName",
+                "MemberType": 0
+            },
+            "SceneToSearch": null
+        }
+    },
+    "DenomQuery": {
+        "DenomChangeButton": {
+            "GameObjectIdentifier": null,
+            "TypeFilter": {
+                "TypeToFind": "GDK.Button.BasicButtonView",
+                "MemberName": "controlName",
+                "MemberValueToCompare": "denom_window",
+                "MemberDataType": "ControlName",
+                "MemberType": 0
+            },
+            "SceneToSearch": null
+        },
+        "ActiveDenomButton": {
+            "GameObjectIdentifier": "Meter_Denom/ActiveDenom/DenomSelection/[View]/DenomSelectionButton/Text",
+            "SceneToSearch": null
+        },
+        "ActiveDenomButtonSprite": {
+            "GameObjectIdentifier": "DenomPivot/Denom",
+            "TypeFilter": null,
+            "SceneToSearch": null
+        },
+        "DenomButtonGenericQuery": {
+            "GameObjectIdentifier": null,
+            "TypeFilter": null,
+            "SceneToSearch": null
+        },
+        "DenomButtonsParentGameObject": {
+            "GameObjectIdentifier": null,
+            "TypeFilter": null,
+            "SceneToSearch": null
+        },
+        "DenomChangeConfirmationYes": {
+            "GameObjectIdentifier": null,
+            "TypeFilter": null,
+            "SceneToSearch": null
+        },
+        "DenomChangeConfirmationNo": {
+            "GameObjectIdentifier": null,
+            "TypeFilter": null,
+            "SceneToSearch": null
+        }
+    },
+    "ReelSets": {
+        "BaseGameReel": {
+            "ReelLayout": [
+                3,
+                3,
+                3,
+                3,
+                3
+            ],
+            "SymboldrawArea": {
+                "GameObjectIdentifier": "BaseGameReelGroup/SymbolDrawArea",
+                "GameobjectInstanceID": 0
+            },
+            "ReelSet": {
+                "GameObjectIdentifier": "BaseGameReelGroup",
+                "TypeFilter": {
+                    "TypeToFind": "GDK.Client.Reels.ReelSet"
+                }
+            },
+            "GenericReelGroupType": {
+                "GameObjectIdentifier": null,
+                "TypeFilter": {
+                    "TypeToFind": "GDK.Client.Reels.ReelSet"
+                },
+                "GameobjectInstanceID": 0
+            },
+            "GenericReelType": {
+                "TypeFilter": {
+                    "TypeToFind": "GDK.Client.Reels.Reel"
+                }
+            },
+            "VisibleSymbolType": {
+                "TypeFilter": {
+                    "TypeToFind": "GDK.Client.Reels.VisibleSymbol"
+                },
+                "SceneToSearch": "ThemeMain"
+            },
+            "SymbolSprite": {
+                "TypeFilter": {
+                    "TypeToFind": "UnityEngine.SpriteRenderer, UnityEngine.CoreModule,Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"
+                },
+                "SceneToSearch": "ThemeMain"
+            },
+            "ReelNudgeButtonType": {
+                "GameObjectIdentifier": "Button Up Reel {0}",
+                "TypeFilter": {
+                    "TypeToFind": "UnityEngine.Collider, UnityEngine,Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"
+                }
+            }
+        },
+        "FreeGameReel": {
+            "ReelLayout": [
+                3,
+                3,
+                3,
+                3,
+                3
+            ],
+            "SymboldrawArea": {
+                "GameObjectIdentifier": "FreeSpinReels/SymbolDrawArea",
+                "GameobjectInstanceID": 0
+            },
+            "ReelSet": {
+                "GameObjectIdentifier": "FreeSpinReels",
+                "TypeFilter": {
+                    "TypeToFind": "GDK.Client.Reels.ReelSet"
+                }
+            },
+            "GenericReelGroupType": {
+                "GameObjectIdentifier": null,
+                "TypeFilter": {
+                    "TypeToFind": "GDK.Client.Reels.ReelSet"
+                },
+                "GameobjectInstanceID": 0
+            },
+            "GenericReelType": {
+                "TypeFilter": {
+                    "TypeToFind": "GDK.Client.Reels.Reel"
+                }
+            },
+            "VisibleSymbolType": {
+                "TypeFilter": {
+                    "TypeToFind": "GDK.Client.Reels.VisibleSymbol"
+                },
+                "SceneToSearch": "ThemeMain"
+            },
+            "SymbolSprite": {
+                "TypeFilter": {
+                    "TypeToFind": "UnityEngine.SpriteRenderer, UnityEngine.CoreModule,Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"
+                },
+                "SceneToSearch": "ThemeMain"
+            },
+            "ReelNudgeButtonType": {
+                "GameObjectIdentifier": "Button Up Reel {0}",
+                "TypeFilter": {
+                    "TypeToFind": "UnityEngine.Collider, UnityEngine,Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"
+                }
+            }
+        }
+    },
+    "DemoMenuNew": {
+        "DemoLabel": {
+            "TypeFilter": {
+                "TypeToFind": "GDK.Demo.Core.DemoLabelMonoBehavior"
+            },
+            "SceneToSearch": "ThemeMain"
+        },
+        "DemoPanel": {
+            "TypeFilter": {
+                "TypeToFind": "GDK.Demo.Core.DemoMenu"
+            },
+            "SceneToSearch": "ThemeMain"
+        },
+        "TabButtonGenericQuery": {
+            "GameObjectIdentifier": "Demo Menu/Button Region/Root Buttons/Button(Clone)",
+            "TypeFilter": {
+                "TypeToFind": "GDK.Demo.Core.DemoOption"
+            },
+            "SceneToSearch": "ThemeMain"
+        },
+        "ChoiceButtonGenericQuery": {
+            "GameObjectIdentifier": "",
+            "TypeFilter": {
+                "TypeToFind": "GDK.Demo.Core.DemoOption"
+            },
+            "SceneToSearch": "ThemeMain"
+        }
+    }
+}

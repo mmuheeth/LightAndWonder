@@ -1,0 +1,20 @@
+{
+    "CollectWagerSaverIDeckButton": {
+        "GameObjectIdentifier": "WagerSaverIDeck/WagerSaverCollectButtonIDeck"
+    },
+    "CollectWagerSaverIDeckButtonText": {
+        "GameObjectIdentifier": "WagerSaverIDeck/WagerSaverCollectButtonIDeck/WagerSaverCollectButtonText"
+    },
+    "PlayWagerSaverIDeckButton": {
+        "GameObjectIdentifier": "WagerSaverIDeck/WagerSaverPlayButtonIDeck"
+    },
+    "PlayWagerSaverIDeckButtonText": {
+        "GameObjectIdentifier": "WagerSaverIDeck/WagerSaverPlayButtonIDeck/WagerSaverPlayButtonText"
+    },
+    "ReturnToGameWagerSaverIdeckButton": {
+        "GameObjectIdentifier": "WagerSaverIDeck/WagerSaverReturnButtonIDeck"
+    },
+    "ReturnToGameWagerSaverIDeckButtonText": {
+        "GameObjectIdentifier": "WagerSaverIDeck/WagerSaverReturnButtonIDeck/WagerSaverReturnButtonText"
+    }
+}

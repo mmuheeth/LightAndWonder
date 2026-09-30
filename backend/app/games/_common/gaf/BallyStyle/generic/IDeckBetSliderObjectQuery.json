@@ -1,0 +1,32 @@
+{
+    "IDeckBetSliderController": {
+        "GameObjectIdentifier": "ButtonPanelCanvas/BetButtonPanelStandardWithSlider/BetSliderController",
+        "TypeFilter": null,
+        "SceneToSearch": null
+      },
+      "IDeckBetSlider": {
+        "GameObjectIdentifier": "ButtonPanelCanvas/BetButtonPanelStandardWithSlider/BetSliderController/BetSlider",
+        "TypeFilter": null,
+        "SceneToSearch": null
+      },
+      "BetSlideNotch1": {
+        "GameObjectIdentifier": "Notch_1",
+        "TypeFilter": null,
+        "SceneToSearch": null
+      },
+      "BetSlideNotch2": {
+        "GameObjectIdentifier": "Notch_2",
+        "TypeFilter": null,
+        "SceneToSearch": null
+      },
+      "BetSlideNotch3": {
+        "GameObjectIdentifier": "Notch_3",
+        "TypeFilter": null,
+        "SceneToSearch": null
+      },
+      "BetSlideNotch4": {
+        "GameObjectIdentifier": "Notch_4",
+        "TypeFilter": null,
+        "SceneToSearch": null
+      }
+}

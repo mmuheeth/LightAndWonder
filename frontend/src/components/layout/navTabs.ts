@@ -26,3 +26,21 @@ export const NAV_TABS: NavTab[] = [
   { value: "cyclic-messages", label: "Cyclic Messages", icon: Repeat2 },
   { value: "game-config", label: "Game Config", icon: Settings2 },
 ];
+
+export function getDefaultTab(): string {
+  return NAV_TABS[0].value;
+}
+
+export function getTabFromLocation(): string {
+  const tabFromPath = window.location.pathname.replace(/^\/+|\/+$/g, "");
+  const tabFromHash = window.location.hash.replace(/^#\/?|\/+$/g, "");
+  const lookup = tabFromPath || tabFromHash || getDefaultTab();
+
+  return NAV_TABS.some((tab) => tab.value === lookup)
+    ? lookup
+    : getDefaultTab();
+}
+
+export function getTabHref(tab: string): string {
+  return `/${tab}`;
+}
