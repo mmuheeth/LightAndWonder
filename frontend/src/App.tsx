@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import { Header } from "@/components/layout/Header";
 import { NavBar } from "@/components/layout/NavBar";
+import { CyclicPanel } from "@/components/cyclic/CyclicPanel";
 import { GafPanel } from "@/components/gaf/GafPanel";
 import { GameConfigPanel } from "@/components/game-config/GameConfigPanel";
 import {
@@ -73,6 +74,8 @@ function App() {
               <SymbolPanel />
             ) : value === "paylines" ? (
               <PaylinePanel />
+            ) : value === "cyclic-messages" ? (
+              <CyclicPanel />
             ) : value === "game-config" ? (
               <GameConfigPanel />
             ) : (

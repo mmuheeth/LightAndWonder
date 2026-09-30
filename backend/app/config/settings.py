@@ -70,6 +70,10 @@ class Settings(BaseSettings):
     # one image at a time. Two read the two meters at once; a third did not help.
     ocr_lanes: int = Field(2, ge=1)
 
+    # Cyclic messages: seconds between the screenshots taken of the message areas while a spin's messages cycle.
+    # A message is on show for ~1.5 s (FortuneOx), so anything well under that sees every one.
+    cyclic_capture_interval: float = Field(0.3, ge=0.1, le=1.0)
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     @property

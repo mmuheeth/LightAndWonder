@@ -1,4 +1,5 @@
-"""Polls a game client log (often on an SMB share) for paytable changes and spin starts/ends.
+"""Polls a game client log (often on an SMB share) for paytable changes, spin starts/ends and what follows a spin:
+its result, the win presentation cycling, and the game going idle again.
 Files are opened per pass with delete-sharing so the game can rotate them, on a thread per log."""
 
 import logging
@@ -26,8 +27,20 @@ _SPIN = (
     rb"StateMachine\[(?P<machine>\w+)\] transitioned from \[\w+\]"
     rb" to \[(?P<state>stateSpin|stateReelSpinDone)\] on event"
 )
+# The result of a spin: "totalWin.Zero()=False:400.000" (the win in the game's smallest currency unit, so 400 is $4.00)
+# or "=True:0.000" when nothing was won. Logged once the reels stopped, a moment before the messages start.
+_RESULT = (
+    rb"SpinBufferManager\.OnGameStateResults resultsStateEvent\.totalWin\.Zero\(\)="
+    rb"(?P<zero>True|False):(?P<win>[\d.]+)"
+)
+# Messages the game publishes that say where a win presentation is: the first pass over the winning lines is
+# done, the cycling was stopped (pressing spin does it), and the game is idle again (a win was collected).
+_PUBLISHED = (
+    rb"\[MessageQueue\.Publish\] msg\[GDK\.\w+\.\w+\."
+    rb"(?P<message>GameOverMsg|CycleResultsStoppedMsg_BaseGame|FirstCycleResultsIterationFinishedMsg)\]"
+)
 _PAYTABLE_RE = re.compile(_PAYTABLE)
-_EVENT_RE = re.compile(_PAYTABLE + b"|" + _SPIN)
+_EVENT_RE = re.compile(b"|".join((_PAYTABLE, _SPIN, _RESULT, _PUBLISHED)))
 
 _TIME_LENGTH = 21  # "09/01/26 15:20:44.848" at the start of every log line
 _TIME_FORMAT = "%m/%d/%y %H:%M:%S.%f"
@@ -43,6 +56,17 @@ class LogEventType(str, Enum):
     PAYTABLE = "paytable"
     SPIN_START = "spin_start"
     SPIN_END = "spin_end"
+    RESULT = "result"
+    CYCLE_FIRST_ITERATION_DONE = "cycle_first_iteration_done"
+    CYCLE_STOPPED = "cycle_stopped"
+    GAME_OVER = "game_over"
+
+
+_PUBLISHED_EVENTS = {
+    b"GameOverMsg": LogEventType.GAME_OVER,
+    b"CycleResultsStoppedMsg_BaseGame": LogEventType.CYCLE_STOPPED,
+    b"FirstCycleResultsIterationFinishedMsg": LogEventType.CYCLE_FIRST_ITERATION_DONE,
+}
 
 
 @dataclass(frozen=True, slots=True)
@@ -56,6 +80,9 @@ class LogEvent:
     supported_denoms: tuple[float, ...] = ()
     # SPIN_START / SPIN_END events: which state machine spun (base game, free spins, ...).
     state_machine: str | None = None
+    # RESULT events: whether the spin won, and how much (0 when it did not).
+    won: bool | None = None
+    win_amount: float | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -191,7 +218,7 @@ class LogWatcher:
                     denom=event.denom,
                     supported_denoms=event.supported_denoms,
                 )
-            else:
+            elif event.type in (LogEventType.SPIN_START, LogEventType.SPIN_END):
                 self._state = replace(self._state, spinning=event.type is LogEventType.SPIN_START)
         if live:
             for listener in self._listeners:
@@ -316,8 +343,14 @@ def _make_event(data: bytes, match: re.Match[bytes]) -> LogEvent:
             denom=_to_float(match["denom"]),
             supported_denoms=tuple(item for item in supported if item is not None),
         )
-    kind = LogEventType.SPIN_START if match["state"] == b"stateSpin" else LogEventType.SPIN_END
-    return LogEvent(kind, log_time, state_machine=match["machine"].decode())
+    if match["machine"] is not None:
+        kind = LogEventType.SPIN_START if match["state"] == b"stateSpin" else LogEventType.SPIN_END
+        return LogEvent(kind, log_time, state_machine=match["machine"].decode())
+    if match["zero"] is not None:
+        return LogEvent(
+            LogEventType.RESULT, log_time, won=match["zero"] == b"False", win_amount=_to_float(match["win"])
+        )
+    return LogEvent(_PUBLISHED_EVENTS[match["message"]], log_time)
 
 
 def _parse_time(raw: bytes) -> datetime | None:

@@ -2,6 +2,7 @@ from functools import lru_cache
 from pathlib import Path
 
 from app.config.settings import Settings, get_settings
+from app.controllers.cyclic_controller import CyclicController
 from app.controllers.game_config_controller import GameConfigController
 from app.controllers.gaf_controller import GafController
 from app.controllers.game_context_controller import GameContextController
@@ -11,6 +12,7 @@ from app.controllers.ocr_controller import OcrController
 from app.controllers.payline_controller import PaylineController
 from app.controllers.roi_controller import RoiController
 from app.controllers.symbol_controller import SymbolController
+from app.services.cyclic_service import CyclicMessageService
 from app.services.gaf_service import GafService
 from app.services.game_config_service import GameConfigService
 from app.services.game_context_service import GameContextService
@@ -107,6 +109,13 @@ def get_roi_controller() -> RoiController:
 
 
 @lru_cache
+def get_ocr_engine() -> PaddleOcrEngine:
+    """Shared, because every lane holds ~650 MB of models: the OCR tab and the cyclic message tracking read
+    through the same ones."""
+    return PaddleOcrEngine(lanes=get_settings().ocr_lanes)
+
+
+@lru_cache
 def get_ocr_controller() -> OcrController:
     """Shared, because the service keeps the OCR models loaded, and is built on the same OBS connection and
     GAF session as their tabs."""
@@ -116,8 +125,25 @@ def get_ocr_controller() -> OcrController:
             obs=get_obs_service(),
             gaf=get_gaf_controller().gaf_service,
             game_context=get_game_context_service(),
-            engine=PaddleOcrEngine(lanes=settings.ocr_lanes),
+            engine=get_ocr_engine(),
             captures_dir=_backend_path(settings.obs_captures_dir),
+        )
+    )
+
+
+@lru_cache
+def get_cyclic_controller() -> CyclicController:
+    """Shared, because tracking is one task following the game's log, on the same OBS connection, log watcher
+    and OCR engine as the tabs it builds on."""
+    settings = get_settings()
+    return CyclicController(
+        cyclic_service=CyclicMessageService(
+            obs=get_obs_service(),
+            log=get_log_watcher(),
+            game_context=get_game_context_service(),
+            engine=get_ocr_engine(),
+            captures_dir=_backend_path(settings.obs_captures_dir),
+            capture_interval=settings.cyclic_capture_interval,
         )
     )
 

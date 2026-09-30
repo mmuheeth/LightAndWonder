@@ -36,6 +36,17 @@ def machine_line(state: str, machine: str = "SlotGameStateMachine", **kw) -> str
 NOISE = f"{stamp()}DBG: [MessageQueue.Publish] msg[GDK.Common.ServerAPI.SpinDoneMsg]"
 
 
+def result_line(won: bool = True, amount: str = "400.000", **kw) -> str:
+    return (
+        f"{stamp(**kw)}DBG: SpinBufferManager.OnGameStateResults "
+        f"resultsStateEvent.totalWin.Zero()={not won}:{amount}"
+    )
+
+
+def published_line(message: str, namespace: str = "GDK.Common.ServerAPI", **kw) -> str:
+    return f"{stamp(**kw)}DBG: [MessageQueue.Publish] msg[{namespace}.{message}]"
+
+
 def append(path: Path, *lines: str) -> None:
     with path.open("ab") as file:
         file.write(("\n".join(lines) + "\n").encode())
@@ -242,6 +253,75 @@ def test_state_keeps_the_supported_denoms_of_the_paytable(log: Path) -> None:
     watcher.poll()
 
     assert watcher.state.supported_denoms == (1.0, 2.0, 5.0)
+
+
+def test_reports_the_result_and_the_win_presentation_events(log: Path) -> None:
+    watcher, events = watch(log)
+    watcher.poll()
+
+    append(
+        log,
+        published_line("CycleResultsStoppedMsg_BaseGame", sec=40, ms=1),
+        machine_line("stateSpin", sec=40, ms=100),
+        machine_line("stateReelSpinDone", sec=43, ms=50),
+        result_line(won=True, amount="400.000", sec=43, ms=400),
+        published_line("FirstCycleResultsIterationFinishedMsg", "GDK.Client.ClientMessaging", sec=49),
+        published_line("GameOverMsg", sec=58),
+    )
+    watcher.poll()
+
+    assert [event.type for event in events] == [
+        LogEventType.CYCLE_STOPPED,
+        LogEventType.SPIN_START,
+        LogEventType.SPIN_END,
+        LogEventType.RESULT,
+        LogEventType.CYCLE_FIRST_ITERATION_DONE,
+        LogEventType.GAME_OVER,
+    ]
+    result = events[3]
+    assert result.won is True
+    assert result.win_amount == 400.0
+    assert result.log_time == datetime(2026, 9, 1, 15, 20, 43, 400000)
+    assert events[5].log_time == datetime(2026, 9, 1, 15, 20, 58, 848000)
+
+
+def test_a_result_with_no_win_says_so(log: Path) -> None:
+    watcher, events = watch(log)
+    watcher.poll()
+
+    append(log, result_line(won=False, amount="0.000"))
+    watcher.poll()
+
+    assert [(event.type, event.won, event.win_amount) for event in events] == [(LogEventType.RESULT, False, 0.0)]
+
+
+def test_results_and_messages_do_not_change_whether_a_spin_is_on(log: Path) -> None:
+    watcher, _ = watch(log)
+    watcher.poll()
+
+    append(log, machine_line("stateSpin"), result_line(), published_line("GameOverMsg"))
+    watcher.poll()
+    assert watcher.state.spinning is True
+
+    append(log, machine_line("stateReelSpinDone"), published_line("GameOverMsg"))
+    watcher.poll()
+    assert watcher.state.spinning is False
+
+
+def test_lookalike_published_messages_are_ignored(log: Path) -> None:
+    watcher, events = watch(log)
+    watcher.poll()
+
+    append(
+        log,
+        published_line("GameOverMsgLater"),
+        published_line("SpinDoneMsg"),
+        # The same message being queued by the game's other process is not the game going idle.
+        f"{stamp()}INF: [SGIPCGameModel.QueueMessage] Enqueued msg[GDK.Common.ServerAPI.GameOverMsg]",
+    )
+    watcher.poll()
+
+    assert events == []
 
 
 def test_no_path_means_idle() -> None:
