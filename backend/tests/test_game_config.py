@@ -100,9 +100,10 @@ def strip(identifier: str, stops: list[tuple[str, int]]) -> str:
     )
 
 
-def combo(symbols: list[str], value: int) -> str:
+def combo(symbols: list[str], value: int, combo_id: int | None = None) -> str:
     listed = "".join(f"<Symbol>{s}</Symbol>" for s in symbols)
-    return f"<PaylineCombo><SymbolList>{listed}</SymbolList><Value>{value}</Value></PaylineCombo>"
+    identified = f"<ComboID>{combo_id}</ComboID>" if combo_id is not None else ""
+    return f"<PaylineCombo><SymbolList>{listed}</SymbolList>{identified}<Value>{value}</Value></PaylineCombo>"
 
 
 def table(name: str, rows: list[tuple[int, int]]) -> str:
@@ -326,6 +327,64 @@ def test_only_the_combo_set_of_the_default_paytable_is_used(
 
     assert combos is not None
     assert all("SC" not in row.symbols for row in combos.rows)
+
+
+def test_pay_rules_keep_every_combo_in_file_order_with_its_id(
+    world: World, service: GameConfigService
+) -> None:
+    (world.folder / "math.xml").write_text(
+        math_xml(
+            combos="".join(
+                [
+                    combo(["AA", "AA", "AA", "AA", "ANY"], 5, combo_id=8),
+                    combo(["AA", "WC", "WC", "ANY", "ANY"], 7, combo_id=9),  # mixed: not in the rows
+                    combo(["CC", "CC", "CC", "CC", "CC"], 20),
+                ]
+            )
+        ),
+        encoding="utf-8",
+    )
+
+    rules = service.get_paytable(PAYTABLE).pay_rules
+
+    assert rules is not None
+    # The ANY padding is dropped, so a combo's length is its run length; a combo without a ComboID has no id.
+    assert [(c.id, c.symbols, c.value) for c in rules.combos] == [
+        (8, ["AA", "AA", "AA", "AA"], 5),
+        (9, ["AA", "WC", "WC"], 7),
+        (None, ["CC", "CC", "CC", "CC", "CC"], 20),
+    ]
+
+
+def test_pay_rules_name_the_symbols_each_wild_stands_in_for(
+    world: World, service: GameConfigService
+) -> None:
+    listed = "".join(f"<Symbol>{s}</Symbol>" for s in ("CC", "AA"))
+    math = math_xml().replace(
+        "<Identifier>WC</Identifier></WildSymbol>",
+        f"<Identifier>WC</Identifier><SymbolList>{listed}</SymbolList></WildSymbol>",
+    )
+    (world.folder / "math.xml").write_text(math, encoding="utf-8")
+
+    rules = service.get_paytable(PAYTABLE).pay_rules
+
+    assert rules is not None
+    assert [(w.code, w.substitutes) for w in rules.wilds] == [("WC", ["AA", "CC"])]
+
+
+def test_a_wild_without_a_symbol_list_stands_in_for_nothing(
+    world: World, service: GameConfigService
+) -> None:
+    rules = service.get_paytable(PAYTABLE).pay_rules
+
+    assert rules is not None
+    assert [(w.code, w.substitutes) for w in rules.wilds] == [("WC", [])]
+
+
+def test_a_paytable_without_combos_has_no_pay_rules(world: World, service: GameConfigService) -> None:
+    (world.folder / "math.xml").write_text(math_xml(combos=""), encoding="utf-8")
+
+    assert service.get_paytable(PAYTABLE).pay_rules is None
 
 
 # ------------------------------------------------------------------ win geometry

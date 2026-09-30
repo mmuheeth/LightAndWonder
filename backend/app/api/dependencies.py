@@ -7,6 +7,7 @@ from app.controllers.gaf_controller import GafController
 from app.controllers.game_context_controller import GameContextController
 from app.controllers.health_controller import HealthController
 from app.controllers.obs_controller import ObsController
+from app.controllers.payline_controller import PaylineController
 from app.controllers.roi_controller import RoiController
 from app.controllers.symbol_controller import SymbolController
 from app.services.gaf_service import GafService
@@ -14,6 +15,7 @@ from app.services.game_config_service import GameConfigService
 from app.services.game_context_service import GameContextService
 from app.services.health_service import HealthService
 from app.services.obs_service import ObsService
+from app.services.payline_service import PaylineService
 from app.services.roi_service import RoiService
 from app.services.symbol_service import SymbolService
 from app.utils.game_config import active_log_path
@@ -113,6 +115,19 @@ def get_symbol_controller() -> SymbolController:
             models_dir=_backend_path(settings.symbol_models_dir),
             readings_dir=_backend_path(settings.obs_captures_dir) / "symbols",
             min_confidence=settings.symbol_min_confidence,
+        )
+    )
+
+
+@lru_cache
+def get_payline_controller() -> PaylineController:
+    """Built on the shared symbol and game config services: the symbols it reads are the Symbol tab's,
+    and the paytable it scores with is the one the Game Config tab follows."""
+    return PaylineController(
+        payline_service=PaylineService(
+            symbols=get_symbol_controller().symbol_service,
+            game_config=get_game_config_controller().game_config_service,
+            min_confidence=get_settings().symbol_min_confidence,
         )
     )
 

@@ -18,14 +18,17 @@ from app.schemas.game_config import (
     CurrentPaytable,
     OrbTable,
     OrbValue,
+    PayCombo,
     PaylineComboRow,
     PaylineCombos,
+    PayRules,
     PaytableConfig,
     PaytableList,
     PaytableSummary,
     ReelStripSet,
     SymbolInfo,
     SymbolKind,
+    WildRule,
     WinGeometry,
 )
 from app.schemas.game_context import GameMode
@@ -190,6 +193,7 @@ class GameConfigService:
             symbols=symbols,
             win_geometry=win_geometry,
             payline_combos=combos,
+            pay_rules=_pay_rules(math),
             default_reel_strip_set=math.default_reel_set,
             reel_strip_sets=reel_sets,
             reel_strips=list(math.reel_strips),
@@ -283,6 +287,15 @@ def _payline_combos(
     return PaylineCombos(
         lengths=lengths,
         rows=[PaylineComboRow(symbols=rows[pays], payouts=list(pays)) for pays in best_first],
+    )
+
+
+def _pay_rules(math: MathData) -> PayRules | None:
+    if not math.payline_combos:
+        return None
+    return PayRules(
+        combos=[PayCombo(id=c.id, symbols=list(c.symbols), value=c.value) for c in math.payline_combos],
+        wilds=[WildRule(code=code, substitutes=sorted(subs)) for code, subs in math.wilds.items()],
     )
 
 

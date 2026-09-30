@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import re
 import threading
 from dataclasses import dataclass
 from datetime import datetime
@@ -9,7 +10,7 @@ from typing import TYPE_CHECKING, Any, Literal
 
 from PIL import Image
 
-from app.core.exceptions import AppException, NotFoundException
+from app.core.exceptions import AppException, BadRequestException, NotFoundException
 from app.schemas.game_context import GameMode
 from app.schemas.roi import RoiImage, RoiRecord
 from app.schemas.symbol import (
@@ -33,6 +34,8 @@ logger = logging.getLogger(__name__)
 _GRID_CROP = "reels"
 _WEIGHTS_FILE = "model.pt"
 _INFO_FILE = "model.json"
+# Starting with a word character rules out "." and "..".
+_READING_ID = re.compile(r"^\w[\w.\-]*$")
 
 
 @dataclass
@@ -180,6 +183,20 @@ class SymbolService:
                 error_code="SYMBOL_NO_TILES",
             )
         return await asyncio.to_thread(self._read, game, info, record)
+
+    def get_reading(self, reading_id: str) -> SymbolReading:
+        if not _READING_ID.match(reading_id):  # it becomes a file name, and comes from a URL
+            raise BadRequestException(f"Invalid reading id '{reading_id}'")
+        try:
+            return SymbolReading.model_validate_json(
+                (self._readings_dir / f"{reading_id}.json").read_text(encoding="utf-8")
+            )
+        except FileNotFoundError:
+            raise NotFoundException(f"No symbol reading '{reading_id}'") from None
+        except (OSError, ValueError) as exc:
+            raise AppException(
+                f"The symbol reading '{reading_id}' cannot be read: {exc}", error_code="SYMBOL_READING_UNREADABLE"
+            ) from exc
 
     def list_readings(self, limit: int) -> list[SymbolReading]:
         """Newest first."""

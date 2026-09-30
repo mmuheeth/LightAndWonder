@@ -1,0 +1,146 @@
+import asyncio
+import logging
+from typing import Literal
+
+from app.core.exceptions import AppException
+from app.schemas.game_config import PaytableConfig
+from app.schemas.game_context import GameMode
+from app.schemas.payline import PaylineCell, PaylineResult
+from app.schemas.symbol import SymbolReading
+from app.services.game_config_service import GameConfigService
+from app.services.symbol_service import SymbolService
+from app.utils import paylines
+
+logger = logging.getLogger(__name__)
+
+
+class PaylineService:
+    """Finds which paylines of a result screenshot pay, and how much. The symbols on the reels come from
+    the symbol reading; the lines (win geometry) and what a run pays (payline combos) from the game's
+    paytable, which is the one the game log reported last unless one is asked for."""
+
+    def __init__(
+        self, *, symbols: SymbolService, game_config: GameConfigService, min_confidence: float
+    ) -> None:
+        self._symbols = symbols
+        self._game_config = game_config
+        self._min_confidence = min_confidence
+
+    async def evaluate(
+        self,
+        game: str | None = None,
+        mode: GameMode | None = None,
+        *,
+        min_confidence: float | None = None,
+        paytable: str | None = None,
+    ) -> PaylineResult:
+        """Takes a screenshot, reads the symbols on it (the Symbol tab's identify) and scores the lines.
+        Game and mode default to the selected ones."""
+        reading = await self._symbols.identify(game, mode)
+        return await asyncio.to_thread(self.score, reading, min_confidence=min_confidence, paytable=paytable)
+
+    def score_reading(
+        self, reading_id: str, *, min_confidence: float | None = None, paytable: str | None = None
+    ) -> PaylineResult:
+        """Scores a reading that was made before, e.g. to see what another confidence floor makes of it."""
+        return self.score(self._symbols.get_reading(reading_id), min_confidence=min_confidence, paytable=paytable)
+
+    def score(
+        self, reading: SymbolReading, *, min_confidence: float | None = None, paytable: str | None = None
+    ) -> PaylineResult:
+        floor = self._min_confidence if min_confidence is None else min_confidence
+        paytable_id, source = self._paytable(reading, paytable)
+        config = self._game_config.get_paytable(paytable_id, reading.game, reading.mode)
+
+        lines = self._lines(reading, config)
+        rules = config.pay_rules
+        if rules is None:
+            raise AppException(
+                f"Paytable '{paytable_id}' has no payline combos, so nothing can be paid.",
+                status_code=422,
+                error_code="PAYLINES_NO_COMBOS",
+            )
+
+        names = {symbol.code: symbol.name for symbol in config.symbols}
+        tiles = [
+            PaylineCell(
+                row=tile.row,
+                column=tile.column,
+                code=tile.code if tile.confidence >= floor else None,
+                guess=tile.code,
+                name=tile.name,
+                confidence=tile.confidence,
+            )
+            for tile in reading.tiles
+        ]
+        outcomes = paylines.score_lines(lines, {(t.row, t.column): t for t in tiles}, rules, names)
+        total = round(sum(outcome.pays for outcome in outcomes), 6)
+
+        logger.info(
+            "Scored %d lines of %s with %s: %s credits over %d paying lines",
+            len(outcomes), reading.id, paytable_id, total, sum(1 for o in outcomes if o.pays > 0),
+        )
+        return PaylineResult(
+            reading_id=reading.id,
+            created_at=reading.created_at,
+            game=reading.game,
+            mode=reading.mode,
+            paytable_id=paytable_id,
+            paytable_source=source,
+            line_set=len(lines),
+            min_confidence=floor,
+            rows=reading.rows,
+            columns=reading.columns,
+            reels=reading.reels,
+            tiles=tiles,
+            lines=outcomes,
+            total_credits=total,
+            complete=not any(outcome.uncertain for outcome in outcomes),
+        )
+
+    # ---------------------------------------------------------------- internals
+
+    def _paytable(
+        self, reading: SymbolReading, requested: str | None
+    ) -> tuple[str, Literal["log", "request"]]:
+        if requested:
+            return requested, "request"
+        current = self._game_config.current()
+        # The log watcher may still be on the previous game's log for a moment after the selection moves.
+        if current.paytable_id and (current.game, current.mode) == (reading.game, reading.mode):
+            return current.paytable_id, "log"
+        raise AppException(
+            f"The game log has not reported a paytable for {reading.game} · {reading.mode.value} yet, "
+            "so its paylines cannot be scored; play a spin, or name the paytable.",
+            status_code=409,
+            error_code="PAYTABLE_UNKNOWN",
+        )
+
+    @staticmethod
+    def _lines(reading: SymbolReading, config: PaytableConfig) -> list[list[int]]:
+        """The lines of the payline set this paytable plays, checked against the grid that was read."""
+        geometry = config.win_geometry
+        if geometry is None:
+            raise AppException(
+                f"'{config.game}' has no win geometry for paytable '{config.paytable_id}', so it has no paylines.",
+                status_code=422,
+                error_code="PAYLINES_NO_GEOMETRY",
+            )
+        line_set = next((s for s in geometry.sets if s.id == geometry.active_set), None)
+        if line_set is None:
+            raise AppException(
+                f"{geometry.file} has no payline set for the {config.summary.lines or 'configured'} lines "
+                f"of paytable '{config.paytable_id}'.",
+                status_code=422,
+                error_code="PAYLINES_NO_LINE_SET",
+            )
+        if any(
+            len(line) != reading.columns or any(not 0 <= row < reading.rows for row in line)
+            for line in line_set.lines
+        ):
+            raise AppException(
+                f"The {line_set.id}-line set does not fit the {reading.rows} by {reading.columns} grid that was read.",
+                status_code=422,
+                error_code="PAYLINES_GRID_MISMATCH",
+            )
+        return line_set.lines

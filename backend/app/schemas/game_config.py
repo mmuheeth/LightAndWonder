@@ -72,6 +72,26 @@ class PaylineCombos(BaseModel):
     rows: list[PaylineComboRow] = Field(description="Best paying first.")
 
 
+class PayCombo(BaseModel):
+    """One payline combo as math.xml states it: a run read left to right from the first reel."""
+
+    id: int | None = Field(None, description="The ComboID.")
+    symbols: list[str] = Field(description="Without the ANY padding, so its length is the run length.")
+    value: float
+
+
+class WildRule(BaseModel):
+    code: str
+    substitutes: list[str] = Field(description="The symbols this wild stands in for.")
+
+
+class PayRules(BaseModel):
+    """What a payline win is decided by: every combo, mixed ones included, and the wilds."""
+
+    combos: list[PayCombo] = Field(description="In file order.")
+    wilds: list[WildRule]
+
+
 class ReelStrip(BaseModel):
     id: str
     stops: list[str] = Field(description="Symbol code at each stop, in strip order.")
@@ -110,6 +130,7 @@ class PaytableConfig(BaseModel):
     symbols: list[SymbolInfo]
     win_geometry: WinGeometry | None = None
     payline_combos: PaylineCombos | None = None
+    pay_rules: PayRules | None = None
     default_reel_strip_set: str | None = None
     reel_strip_sets: list[ReelStripSet]
     reel_strips: list[ReelStrip]

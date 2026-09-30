@@ -7,7 +7,7 @@ import type { SymbolModelStatus, SymbolReading } from '@/types/symbols'
 const TRAINING_POLL_MS = 2_000
 
 const modelKey = (game: string | undefined) => ['symbols', 'model', game]
-const READINGS_KEY = ['symbols', 'readings']
+export const READINGS_KEY = ['symbols', 'readings']
 
 /** The game's classifier; while it trains, it is polled until it is done. */
 export function useSymbolModel(game: string | undefined) {

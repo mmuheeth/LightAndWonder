@@ -35,6 +35,7 @@ class RawCombo:
 
     symbols: tuple[str, ...]
     value: float
+    id: int | None = None  # the ComboID
 
 
 @dataclass(frozen=True)
@@ -44,7 +45,7 @@ class MathData:
     default_reel_set: str | None
     payline_set: int | None
     symbols: tuple[str, ...]  # in symbol set order
-    wilds: frozenset[str]
+    wilds: dict[str, frozenset[str]]  # each wild to the symbols it stands in for
     reel_strips: tuple[ReelStrip, ...]
     reel_sets: tuple[RawReelSet, ...]
     payline_combos: tuple[RawCombo, ...]
@@ -87,7 +88,7 @@ def read_math(path: Path) -> MathData:
         default_reel_set=_text(default, "ReelStripSetID"),
         payline_set=_integer(_text(default, "PaylineSetID")),
         symbols=tuple(_texts(symbol_set, "SymbolList/Symbol")),
-        wilds=frozenset(_texts(symbol_set, "WildSymbolList/WildSymbol/Identifier")),
+        wilds=_wilds(symbol_set),
         reel_strips=tuple(_reel_strips(root)),
         reel_sets=tuple(_reel_sets(root)),
         payline_combos=tuple(_payline_combos(root, _text(default, "PaytableID"))),
@@ -113,6 +114,17 @@ def read_win_geometry(path: Path) -> list[PaylineSet]:
 
 
 # ------------------------------------------------------------------ math.xml sections
+
+
+def _wilds(symbol_set: ET.Element | None) -> dict[str, frozenset[str]]:
+    """A wild with no symbol list stands in for nothing: only what the file states is taken."""
+    if symbol_set is None:
+        return {}
+    return {
+        identifier: frozenset(_texts(wild, "SymbolList/Symbol"))
+        for wild in symbol_set.iterfind("WildSymbolList/WildSymbol")
+        if (identifier := _text(wild, "Identifier"))
+    }
 
 
 def _reel_strips(root: ET.Element) -> list[ReelStrip]:
@@ -157,7 +169,11 @@ def _payline_combos(root: ET.Element, paytable_id: str | None) -> list[RawCombo]
             symbols = _texts(combo, "SymbolList/Symbol")
             value = _number(_text(combo, "Value"))
             if value is not None:
-                combos.append(RawCombo(tuple(s for s in symbols if s != _ANY_SYMBOL), value))
+                combos.append(
+                    RawCombo(
+                        tuple(s for s in symbols if s != _ANY_SYMBOL), value, _integer(_text(combo, "ComboID"))
+                    )
+                )
         return combos
     return []
 

@@ -66,6 +66,28 @@ export interface PaylineCombos {
   rows: PaylineComboRow[]
 }
 
+/** One payline combo as math.xml states it: a run read left to right from the first reel. */
+export interface PayCombo {
+  /** The ComboID. */
+  id: number | null
+  /** Without the ANY padding, so its length is the run length. */
+  symbols: string[]
+  value: number
+}
+
+export interface WildRule {
+  code: string
+  /** The symbols this wild stands in for. */
+  substitutes: string[]
+}
+
+/** What a payline win is decided by: every combo, mixed ones included, and the wilds. */
+export interface PayRules {
+  /** In file order. */
+  combos: PayCombo[]
+  wilds: WildRule[]
+}
+
 export interface ReelStrip {
   id: string
   stops: string[]
@@ -104,6 +126,7 @@ export interface PaytableConfig {
   symbols: SymbolInfo[]
   win_geometry: WinGeometry | null
   payline_combos: PaylineCombos | null
+  pay_rules: PayRules | null
   default_reel_strip_set: string | null
   reel_strip_sets: ReelStripSet[]
   reel_strips: ReelStrip[]

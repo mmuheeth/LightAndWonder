@@ -10,6 +10,7 @@ import {
   NAV_TABS,
 } from "@/components/layout/navTabs";
 import { ObsPanel } from "@/components/obs/ObsPanel";
+import { PaylinePanel } from "@/components/paylines/PaylinePanel";
 import { RoiPanel } from "@/components/roi/RoiPanel";
 import { SymbolPanel } from "@/components/symbols/SymbolPanel";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
@@ -67,6 +68,8 @@ function App() {
               <RoiPanel />
             ) : value === "symbol" ? (
               <SymbolPanel />
+            ) : value === "paylines" ? (
+              <PaylinePanel />
             ) : value === "game-config" ? (
               <GameConfigPanel />
             ) : (
