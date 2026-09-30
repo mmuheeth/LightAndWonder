@@ -66,6 +66,10 @@ class Settings(BaseSettings):
     # value: it can be changed there.
     symbol_min_confidence: float = Field(90.0, ge=0, le=100)
 
+    # OCR: PaddleOCR reads the meter and cyclic messages in worker processes ("lanes", ~650 MB each), each reading
+    # one image at a time. Two read the two meters at once; a third did not help.
+    ocr_lanes: int = Field(2, ge=1)
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     @property

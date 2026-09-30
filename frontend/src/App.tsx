@@ -10,6 +10,7 @@ import {
   NAV_TABS,
 } from "@/components/layout/navTabs";
 import { ObsPanel } from "@/components/obs/ObsPanel";
+import { OcrPanel } from "@/components/ocr/OcrPanel";
 import { PaylinePanel } from "@/components/paylines/PaylinePanel";
 import { RoiPanel } from "@/components/roi/RoiPanel";
 import { SymbolPanel } from "@/components/symbols/SymbolPanel";
@@ -66,6 +67,8 @@ function App() {
               <GafPanel />
             ) : value === "roi" ? (
               <RoiPanel />
+            ) : value === "ocr" ? (
+              <OcrPanel />
             ) : value === "symbol" ? (
               <SymbolPanel />
             ) : value === "paylines" ? (

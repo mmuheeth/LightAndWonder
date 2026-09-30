@@ -7,6 +7,7 @@ from app.controllers.gaf_controller import GafController
 from app.controllers.game_context_controller import GameContextController
 from app.controllers.health_controller import HealthController
 from app.controllers.obs_controller import ObsController
+from app.controllers.ocr_controller import OcrController
 from app.controllers.payline_controller import PaylineController
 from app.controllers.roi_controller import RoiController
 from app.controllers.symbol_controller import SymbolController
@@ -15,12 +16,14 @@ from app.services.game_config_service import GameConfigService
 from app.services.game_context_service import GameContextService
 from app.services.health_service import HealthService
 from app.services.obs_service import ObsService
+from app.services.ocr_service import OcrService
 from app.services.payline_service import PaylineService
 from app.services.roi_service import RoiService
 from app.services.symbol_service import SymbolService
 from app.utils.game_config import active_log_path
 from app.utils.log_watcher import LogWatcher
 from app.utils.nrobot import NRobot
+from app.utils.ocr_engine import PaddleOcrEngine
 from app.services.obs_window_service import ObsWindowService
 
 BACKEND_DIR = Path(__file__).resolve().parents[2]
@@ -99,6 +102,22 @@ def get_roi_controller() -> RoiController:
             obs=get_obs_service(),
             game_context=get_game_context_service(),
             captures_dir=_backend_path(get_settings().obs_captures_dir),
+        )
+    )
+
+
+@lru_cache
+def get_ocr_controller() -> OcrController:
+    """Shared, because the service keeps the OCR models loaded, and is built on the same OBS connection and
+    GAF session as their tabs."""
+    settings = get_settings()
+    return OcrController(
+        ocr_service=OcrService(
+            obs=get_obs_service(),
+            gaf=get_gaf_controller().gaf_service,
+            game_context=get_game_context_service(),
+            engine=PaddleOcrEngine(lanes=settings.ocr_lanes),
+            captures_dir=_backend_path(settings.obs_captures_dir),
         )
     )
 

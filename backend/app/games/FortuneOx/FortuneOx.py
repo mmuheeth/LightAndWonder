@@ -6,7 +6,7 @@ fortune_ox = {
         "roi" : {
             "cash_meter": [0.0, 0.844468, 1.0, 0.884554],
             "cyclic_message": [0.0, 0.8475, 0.18, 0.8568],
-            "cyclic_message_2": [0.0, 0.8568, 0.18, 0.867],
+            "cyclic_message_2": [0.0, 0.8568, 0.18, 0.8661],
             "reels": [0.045131, 0.559722, 0.95487, 0.822222]
         },
         "logs" : "C:\\logs\\Game\\FortuneOx\\Logs\\FortuneOx_Client.log",
