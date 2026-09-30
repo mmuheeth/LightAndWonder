@@ -11,6 +11,7 @@ import {
 } from "@/components/layout/navTabs";
 import { ObsPanel } from "@/components/obs/ObsPanel";
 import { RoiPanel } from "@/components/roi/RoiPanel";
+import { SymbolPanel } from "@/components/symbols/SymbolPanel";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useGameContextSync } from "@/hooks/useGameContext";
 import { useGameContextStore } from "@/store/useGameContextStore";
@@ -64,6 +65,8 @@ function App() {
               <GafPanel />
             ) : value === "roi" ? (
               <RoiPanel />
+            ) : value === "symbol" ? (
+              <SymbolPanel />
             ) : value === "game-config" ? (
               <GameConfigPanel />
             ) : (

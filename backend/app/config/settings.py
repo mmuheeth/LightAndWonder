@@ -2,6 +2,7 @@ from functools import lru_cache
 
 from typing import Literal
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -57,6 +58,13 @@ class Settings(BaseSettings):
     # A freshly launched game takes a while to accept the connection.
     gaf_connect_attempts: int = 3
     gaf_connect_retry_delay: float = 2.0
+
+    # Symbols: a ResNet34 fitted to each game's artwork (app/games/<game>/symbols/<code>/*.png); the
+    # trained model of a game is kept under symbol_models_dir.
+    symbol_models_dir: str = "data/symbol_models"
+    # Percent a tile's best guess must reach for the Symbol tab to name it. Only the tab's starting
+    # value: it can be changed there.
+    symbol_min_confidence: float = Field(90.0, ge=0, le=100)
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

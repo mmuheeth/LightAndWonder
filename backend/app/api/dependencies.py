@@ -8,12 +8,14 @@ from app.controllers.game_context_controller import GameContextController
 from app.controllers.health_controller import HealthController
 from app.controllers.obs_controller import ObsController
 from app.controllers.roi_controller import RoiController
+from app.controllers.symbol_controller import SymbolController
 from app.services.gaf_service import GafService
 from app.services.game_config_service import GameConfigService
 from app.services.game_context_service import GameContextService
 from app.services.health_service import HealthService
 from app.services.obs_service import ObsService
 from app.services.roi_service import RoiService
+from app.services.symbol_service import SymbolService
 from app.utils.game_config import active_log_path
 from app.utils.log_watcher import LogWatcher
 from app.utils.nrobot import NRobot
@@ -95,6 +97,22 @@ def get_roi_controller() -> RoiController:
             obs=get_obs_service(),
             game_context=get_game_context_service(),
             captures_dir=_backend_path(get_settings().obs_captures_dir),
+        )
+    )
+
+
+@lru_cache
+def get_symbol_controller() -> SymbolController:
+    """Shared, because only one model may train at a time and the service keeps the loaded models."""
+    settings = get_settings()
+    return SymbolController(
+        symbol_service=SymbolService(
+            roi=get_roi_controller().roi_service,
+            game_context=get_game_context_service(),
+            games_dir=BACKEND_DIR / "app" / "games",
+            models_dir=_backend_path(settings.symbol_models_dir),
+            readings_dir=_backend_path(settings.obs_captures_dir) / "symbols",
+            min_confidence=settings.symbol_min_confidence,
         )
     )
 
