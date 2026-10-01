@@ -9,9 +9,9 @@ huff_n_puff_high_rise = {
             "cyclic_message": [],
             "cyclic_message_2": []
         },
-        "logs" : "C:\\logs\\Game\\FortuneOx\\Logs\\FortuneOx_Client.log",
-        "game_config" : "C:\\re\\games\\FortuneOx\\GameConfig",
-        "win_geometry" : "C:\\re\\games\\FortuneOx\\GameConfig\\winGeometry.xml"
+        "logs" : "C:\\logs\\Game\\HuffNPuffHighRise\\Logs\\HuffNPuffHighRise_Client.log",
+        "game_config" : "C:\\re\\games\\HuffNPuffHighRise\\GameConfig",
+        "win_geometry" : "C:\\re\\games\\HuffNPuffHighRise\\GameConfig\\winGeometry.xml"
         },
     "egm" : {
         "host": "10.2.168.252",
@@ -23,8 +23,8 @@ huff_n_puff_high_rise = {
             "cyclic_message_2": []
         },
         "logs" :  "\\\\10.2.255.20\\c$\\wms_games\\Logs\\Game\\HuffNPuffHighRise\\Logs\\HuffNPuffHighRise_Client.log",
-        "game_config" : "\\\\10.2.255.20\\c$\\games\\HuffNPuffHighRise\\games\\HuffNPuffHighRise\\GameConfig",
-        "win_geometry" : "\\\\10.2.255.20\\c$\\games\\HuffNPuffHighRise\\games\\HuffNPuffHighRise\\GameConfig\\winGeometry.xml",
+        "game_config" : "\\\\10.2.255.20\\c$\\games\\HuffNPuffHighRise\\games\\3093998_HuffNPuffHighRise\\GameConfig",
+        "win_geometry" : "\\\\10.2.255.20\\c$\\games\\HuffNPuffHighRise\\games\\3093998_HuffNPuffHighRise\\GameConfig\\winGeometry.xml",
     },
     "symbols": {
     },
@@ -44,5 +44,8 @@ huff_n_puff_high_rise = {
         "game_type": "BallyStyle",
         "gdk_version": "12",
         "object_query_root": "app/games/HuffNPuffHighRise/ObjectQuery.json",
+        "actions": [
+            "take_win", "toggle_credit_meter"
+        ],
     }
 }

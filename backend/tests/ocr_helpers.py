@@ -50,6 +50,24 @@ CASH_NO_WIN = [
 ]
 
 
+# HuffNPuffHighRise in cash mode with a win (ocr_20261001_134620_781_c8fcbd): each label is left of its amount,
+# with the amount in credits in small type under the label; "1C" is the denomination button, "DEMO" a banner.
+HUFF_CASH_WITH_WIN = [
+    box("DEMO", 1, 0, 51, 16, 0.923),
+    box("AKESt", 8, 32, 42, 46, 0.362),
+    box("CASH", 61, 17, 92, 34),
+    box("99820", 64, 30, 89, 41, 0.949),
+    box("$998.20", 102, 13, 198, 45, 0.973),
+    box("WIN", 242, 11, 268, 28),
+    box("300", 246, 23, 265, 37, 0.970),
+    box("$3.00", 293, 2, 438, 48, 0.988),
+    box("BET", 456, 16, 480, 35, 0.987),
+    box("200", 457, 29, 477, 44, 0.999),
+    box("$2.00", 498, 12, 572, 47, 0.918),
+    box("1C", 607, 7, 647, 45, 0.872),
+    box("oUSTIIOTU", 608, 38, 642, 48, 0.484),
+]
+
 class FakeOcrEngine:
     """Answers by the colour of the image's top-left pixel, which is how a test says "this is the crop cut
     from that place in that screenshot"."""

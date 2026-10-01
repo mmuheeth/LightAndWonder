@@ -50,6 +50,13 @@ def test_a_cash_meter_with_a_win(engine) -> None:
     assert parsed.issues == []
 
 
+def test_a_cash_meter_with_its_labels_left_of_the_amounts(engine) -> None:
+    parsed = meter(engine, "meter_huff_cash_win.png", "cash")  # HuffNPuffHighRise
+
+    assert (parsed.balance.value, parsed.win.value, parsed.bet.value) == (998.2, 3.0, 2.0)
+    assert parsed.issues == []
+
+
 @pytest.mark.parametrize(
     ("name", "cash"), [("meter_cash_no_win.png", 1040.01), ("meter_cash_no_win_clipped.png", 1039.13)]
 )
