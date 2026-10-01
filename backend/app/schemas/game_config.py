@@ -1,8 +1,12 @@
 from enum import Enum
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
 from app.schemas.game_context import GameMode
+
+# How a paytable pays: along the lines of a win geometry, or by ways (every route over neighbouring reels).
+PayKind = Literal["lines", "ways"]
 
 
 class CurrentPaytable(BaseModel):
@@ -86,7 +90,7 @@ class WildRule(BaseModel):
 
 
 class PayRules(BaseModel):
-    """What a payline win is decided by: every combo, mixed ones included, and the wilds."""
+    """What a payline or ways win is decided by: every combo, mixed ones included, and the wilds."""
 
     combos: list[PayCombo] = Field(description="In file order.")
     wilds: list[WildRule]
@@ -126,6 +130,8 @@ class PaytableConfig(BaseModel):
     game: str
     mode: GameMode
     paytable_id: str
+    # The game's own `pay_kind` setting. For ways, `summary.lines` counts ways and `win_geometry` is not used.
+    pay_kind: PayKind
     summary: PaytableSummary
     symbols: list[SymbolInfo]
     win_geometry: WinGeometry | None = None

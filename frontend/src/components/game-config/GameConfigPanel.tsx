@@ -6,6 +6,7 @@ import { OrbValuesCard } from '@/components/game-config/OrbValuesCard'
 import { PaylineCombosCard } from '@/components/game-config/PaylineCombosCard'
 import { PaytableCard } from '@/components/game-config/PaytableCard'
 import { ReelStripsCard } from '@/components/game-config/ReelStripsCard'
+import { WaysCard } from '@/components/game-config/WaysCard'
 import { WinGeometryCard } from '@/components/game-config/WinGeometryCard'
 import { useCurrentPaytable, usePaytableConfig, usePaytableList } from '@/hooks/useGameConfig'
 import { cn } from '@/lib/utils'
@@ -49,6 +50,15 @@ function GameConfigView({ context }: { context: GameContext }) {
     [config?.symbols],
   )
 
+  // The grid a ways paytable is played on: the reels and rows of its default reel set.
+  const waysGrid = useMemo(() => {
+    if (config?.pay_kind !== 'ways') return null
+    const reelSet = config.reel_strip_sets.find((set) => set.id === config.default_reel_strip_set)
+    if (reelSet) return { reels: reelSet.strip_ids.length, rows: reelSet.visible_rows, source: reelSet.id }
+    const geometry = config.win_geometry
+    return geometry ? { reels: geometry.reels, rows: geometry.rows, source: 'winGeometry.xml' } : null
+  }, [config])
+
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['game-config'] })
 
   return (
@@ -63,6 +73,7 @@ function GameConfigView({ context }: { context: GameContext }) {
         paytableId={paytableId}
         inspecting={inspected !== null && inspected !== current?.paytable_id}
         summary={config?.summary}
+        payKind={config?.pay_kind}
         paytables={list.data?.paytables ?? []}
         refreshing={detail.isFetching || list.isFetching}
         onInspect={setInspected}
@@ -93,7 +104,10 @@ function GameConfigView({ context }: { context: GameContext }) {
               </ul>
             </Notice>
           ) : null}
-          {config.win_geometry ? (
+          {/* A ways paytable plays no lines, so the file's payline sets say nothing about it. */}
+          {config.pay_kind === 'ways' ? (
+            <WaysCard summary={config.summary} grid={waysGrid} />
+          ) : config.win_geometry ? (
             <WinGeometryCard
               key={`geometry:${config.paytable_id}`}
               geometry={config.win_geometry}
@@ -101,7 +115,11 @@ function GameConfigView({ context }: { context: GameContext }) {
             />
           ) : null}
           {config.payline_combos ? (
-            <PaylineCombosCard combos={config.payline_combos} symbols={symbols} />
+            <PaylineCombosCard
+              combos={config.payline_combos}
+              symbols={symbols}
+              kind={config.pay_kind}
+            />
           ) : null}
           {config.reel_strip_sets.length > 0 ? (
             <ReelStripsCard key={`reels:${config.paytable_id}`} config={config} symbols={symbols} />

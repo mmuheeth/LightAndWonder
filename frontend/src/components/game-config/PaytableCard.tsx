@@ -13,7 +13,7 @@ import {
   formatPerCredit,
 } from '@/lib/gameConfigFormat'
 import { cn } from '@/lib/utils'
-import type { CurrentPaytable, PaytableSummary } from '@/types/gameConfig'
+import type { CurrentPaytable, PayKind, PaytableSummary } from '@/types/gameConfig'
 import type { GameContext } from '@/types/gameContext'
 
 /** Select items cannot have an empty value, so "follow the log" gets one of its own. */
@@ -62,6 +62,8 @@ interface PaytableCardProps {
   paytableId: string | null
   inspecting: boolean
   summary: PaytableSummary | undefined
+  /** Whether the paytable's NumberOfLines counts lines or ways. */
+  payKind?: PayKind
   paytables: string[]
   refreshing: boolean
   onInspect: (paytableId: string | null) => void
@@ -74,6 +76,7 @@ export function PaytableCard({
   paytableId,
   inspecting,
   summary,
+  payKind = 'lines',
   paytables,
   refreshing,
   onInspect,
@@ -143,7 +146,7 @@ export function PaytableCard({
             <Row label="Base game return">
               {summary.base_return_pct !== null ? formatPercent(summary.base_return_pct) : '—'}
             </Row>
-            <Row label="Lines">{summary.lines ?? '—'}</Row>
+            <Row label={payKind === 'ways' ? 'Ways' : 'Lines'}>{summary.lines ?? '—'}</Row>
             <Row label="Current denom">
               {denom !== null ? (
                 <>

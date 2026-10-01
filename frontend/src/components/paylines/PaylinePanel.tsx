@@ -1,6 +1,7 @@
 import { History, Loader2, Waypoints } from 'lucide-react'
 
 import { PaylineResultCard } from '@/components/paylines/PaylineResultCard'
+import { WayResultCard } from '@/components/paylines/WayResultCard'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { EmptyState, Notice } from '@/components/ui/notice'
@@ -87,7 +88,11 @@ export function PaylinePanel() {
         <Notice tone="error">Could not score the paylines: {score.error.message}</Notice>
       ) : score.data ? (
         <div className={cn('transition-opacity', stale && 'pointer-events-none opacity-50')} aria-busy={stale}>
-          <PaylineResultCard key={score.data.reading_id} result={score.data} />
+          {score.data.kind === 'ways' ? (
+            <WayResultCard key={score.data.reading_id} result={score.data} />
+          ) : (
+            <PaylineResultCard key={score.data.reading_id} result={score.data} />
+          )}
         </div>
       ) : (
         <EmptyState loading title="Scoring the paylines…" />

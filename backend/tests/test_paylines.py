@@ -20,7 +20,7 @@ from app.utils import game_config as game_settings
 from app.utils import symbol_classifier
 from app.utils.log_watcher import LogWatcher
 from tests.fake_obs import FakeObs
-from tests.test_game_config import GAME_CFG, LOG_LINE, math_xml
+from tests.test_game_config import GAME_CFG, LOG_LINE, math_xml, ways_math_xml
 from tests.test_roi import (  # noqa: F401  (fixtures and helpers of the ROI tests, which this builds on)
     GAME,
     connected,
@@ -53,6 +53,15 @@ COMBOS = "".join(
 )
 
 
+def with_wild_standing_in(xml: str) -> str:
+    """Lets the wild of the test paytable stand in for Ace, Bell and Cherry, but not for the scatter."""
+    wild = "<WildSymbol><Identifier>WC</Identifier></WildSymbol>"
+    stands_in = "".join(f"<Symbol>{s}</Symbol>" for s in ("AA", "BB", "CC"))
+    return xml.replace(
+        wild, f"<WildSymbol><Identifier>WC</Identifier><SymbolList>{stands_in}</SymbolList></WildSymbol>"
+    )
+
+
 def geometry_xml(lines: list[str], set_id: int = 3) -> str:
     paylines = "".join(
         f'<Payline paylineNumber="{number}">'
@@ -74,18 +83,11 @@ class Install:
         self.log = root / "TestGame_Client.log"
         self.log.write_text("")
 
-        wild = "<WildSymbol><Identifier>WC</Identifier></WildSymbol>"
-        stands_in = "".join(f"<Symbol>{s}</Symbol>" for s in ("AA", "BB", "CC"))
-        (self.folder / "math.xml").write_text(
-            math_xml(combos=COMBOS).replace(
-                wild, f"<WildSymbol><Identifier>WC</Identifier><SymbolList>{stands_in}</SymbolList></WildSymbol>"
-            ),
-            encoding="utf-8",
-        )
+        (self.folder / "math.xml").write_text(with_wild_standing_in(math_xml(combos=COMBOS)), encoding="utf-8")
         (self.folder / "gameConfig.cfg").write_text(GAME_CFG.format(lines=len(LINES)), encoding="utf-8")
         self.geometry.write_text(geometry_xml(LINES), encoding="utf-8")
 
-        self.config = make_config(symbols=NAMES, scatter_symbols=["SC"])
+        self.config = make_config(symbols=NAMES, scatter_symbols=["SC"], pay_kind="lines")
         self.config["simulator"] = {
             **self.config["simulator"],
             "logs": str(self.log),
@@ -186,6 +188,7 @@ def test_a_saved_reading_is_scored_along_the_lines_of_the_win_geometry(
 
     assert (result["reading_id"], result["game"], result["mode"]) == (saved.id, GAME, "simulator")
     assert (result["paytable_id"], result["paytable_source"], result["line_set"]) == (PAYTABLE, "request", 3)
+    assert (result["kind"], result["ways"]) == ("lines", [])
     assert (result["rows"], result["columns"], result["min_confidence"]) == (3, 5, 90.0)
     assert [t["code"] for t in result["tiles"]] == [t.code for t in saved.tiles]
     lines = {line["number"]: line for line in result["lines"]}
@@ -344,6 +347,102 @@ def test_lines_that_do_not_fit_the_grid_that_was_read_are_refused(
 
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "PAYLINES_GRID_MISMATCH"
+
+
+# -------------------------------------------------------------------------------- ways
+
+WAYS = {
+    "AA": [("AA AA AA AA AA", 20), ("AA AA AA AA ANY", 5), ("AA AA AA ANY ANY", 2)],
+    "BB": [("BB BB BB ANY ANY", 3)],
+}
+
+
+@pytest.fixture
+def ways_install(install: Install) -> Install:
+    """The same game with a paytable that pays by ways: 243 of them over its 3 x 5 grid, and no payline set."""
+    install.config["pay_kind"] = "ways"
+    (install.folder / "math.xml").write_text(with_wild_standing_in(ways_math_xml(WAYS)), encoding="utf-8")
+    (install.folder / "gameConfig.cfg").write_text(GAME_CFG.format(lines=243), encoding="utf-8")
+    return install
+
+
+def test_a_ways_paytable_is_scored_over_every_route_across_the_reels(
+    payline_client: TestClient, payline_service: PaylineService, ways_install: Install
+) -> None:
+    saved = keep(payline_service, reading(["AA BB AA CC BB", "AA AA WC CC AA", "BB CC AA BB CC"]))
+
+    result = score(payline_client, saved.id)
+
+    assert (result["kind"], result["line_set"], result["lines"]) == ("ways", 243, [])
+    ways = {way["symbol"]: way for way in result["ways"]}
+    assert sorted(ways) == ["AA", "BB"]
+    # Ace: two cells on reel 1, one on reel 2, three on reel 3 (the wild stands in): 6 ways at 2 each.
+    ace = ways["AA"]
+    assert (ace["symbol_name"], ace["matches"], ace["ways"], ace["pays"]) == ("Ace", 3, 6, 12)
+    assert ace["combo"] == {"id": 3, "pattern": ["AA", "AA", "AA", "ANY", "ANY"], "value": 2}
+    assert [[(c["row"], c["column"], c["code"]) for c in reel] for reel in ace["reels"]] == [
+        [(0, 0, "AA"), (1, 0, "AA")],
+        [(1, 1, "AA")],
+        [(0, 2, "AA"), (1, 2, "WC"), (2, 2, "AA")],
+    ]
+    # Bell runs over all five reels, but the paytable only pays it for three.
+    assert (ways["BB"]["matches"], ways["BB"]["ways"], ways["BB"]["pays"]) == (3, 1, 3)
+    assert result["total_credits"] == 15
+    assert result["complete"] is True
+
+
+def test_a_ways_game_whose_math_has_no_ways_combos_is_refused_as_such(
+    payline_client: TestClient, payline_service: PaylineService, install: Install
+) -> None:
+    install.config["pay_kind"] = "ways"  # while its math.xml holds payline combos only
+    saved = keep(payline_service, reading(WINNING))
+
+    response = payline_client.get(f"{URL}/score", params={"reading": saved.id, "paytable": PAYTABLE})
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "PAYLINES_NO_COMBOS"
+    assert "ways combos" in response.json()["error"]["message"]
+
+
+def test_a_ways_paytable_needs_no_win_geometry(
+    payline_client: TestClient, payline_service: PaylineService, ways_install: Install
+) -> None:
+    del ways_install.config["simulator"]["win_geometry"]
+    saved = keep(payline_service, reading(["AA AA AA CC CC", "CC CC CC CC CC", "CC CC CC CC CC"]))
+
+    result = score(payline_client, saved.id)
+
+    assert (result["kind"], result["total_credits"]) == ("ways", 2)
+
+
+def test_an_unread_tile_makes_a_ways_total_incomplete(
+    payline_client: TestClient, payline_service: PaylineService, ways_install: Install
+) -> None:
+    saved = keep(payline_service, reading(["AA AA AA CC CC", "CC CC CC CC CC", "CC CC CC CC CC"], r1c3=85))
+
+    result = score(payline_client, saved.id)
+
+    assert [way["symbol"] for way in result["ways"]] == ["AA"]
+    ace = result["ways"][0]
+    assert (ace["pays"], ace["matches"], ace["uncertain"], ace["unpaid"]) == (0, 2, True, False)
+    assert [(c["row"], c["column"], c["code"], c["guess"]) for c in ace["unread"]] == [(0, 2, None, "AA")]
+    assert (result["total_credits"], result["complete"]) == (0, False)
+    # With the floor lowered the tile is read, and Ace pays.
+    lenient = score(payline_client, saved.id, min_confidence=80)
+    assert (lenient["total_credits"], lenient["complete"]) == (2, True)
+
+
+def test_a_grid_that_does_not_hold_the_ways_of_the_paytable_is_refused(
+    payline_client: TestClient, payline_service: PaylineService, ways_install: Install
+) -> None:
+    # Three rows over four reels hold 81 ways, not the 243 the paytable pays.
+    saved = keep(payline_service, reading(["AA AA AA CC", "CC CC CC CC", "CC CC CC CC"]))
+
+    response = payline_client.get(f"{URL}/score", params={"reading": saved.id, "paytable": PAYTABLE})
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "PAYLINES_GRID_MISMATCH"
+    assert "243" in response.json()["error"]["message"] and "81" in response.json()["error"]["message"]
 
 
 # --------------------------------------------------------------------------- evaluating

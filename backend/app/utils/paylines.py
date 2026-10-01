@@ -1,10 +1,12 @@
-"""Scoring a grid of symbols along the lines of a win geometry, against the combos of a paytable.
-Pure functions: nothing here reads a file, a screen or the clock."""
+"""Scoring a grid of symbols against the combos of a paytable: along the lines of a win geometry, or, for a
+game that pays by ways, over every route across the reels. Pure functions: nothing here reads a file, a
+screen or the clock."""
 
+import math
 from collections.abc import Mapping, Sequence
 
 from app.schemas.game_config import PayCombo, PayRules
-from app.schemas.payline import PaidCombo, PaylineCell, PaylineOutcome, PaylineStep
+from app.schemas.payline import PaidCombo, PaylineCell, PaylineOutcome, PaylineStep, WayOutcome
 
 ANY = "ANY"  # pads a combo out to the reels: "any symbol may follow"
 
@@ -66,6 +68,73 @@ def score_lines(
         score_line(number, [grid[(row, reel)] for reel, row in enumerate(line)], rules, wilds, names)
         for number, line in enumerate(lines, start=1)
     ]
+
+
+def score_ways(
+    grid: Mapping[tuple[int, int], PaylineCell],
+    rows: int,
+    columns: int,
+    rules: PayRules,
+    names: Mapping[str, str],
+) -> list[WayOutcome]:
+    """`grid` is keyed by (row, reel). Every symbol that heads a combo is scored on its own: it runs over the
+    reels from the first for as long as each shows it (a wild stands in), and the best combo the run fills
+    pays its value for every route over the reels it counts, that is, times the cells that match on each.
+    Symbols that neither pay nor make a run of two or more reels, and cannot, are left out."""
+    wilds = wild_map(rules)
+    reels = [[grid[(row, reel)] for row in range(rows)] for reel in range(columns)]
+    heads = dict.fromkeys(combo.symbols[0] for combo in rules.combos if combo.symbols)
+    outcomes = (_score_symbol_ways(symbol, reels, rules, wilds, names) for symbol in heads)
+    return [outcome for outcome in outcomes if outcome is not None]
+
+
+def _score_symbol_ways(
+    symbol: str,
+    reels: Sequence[Sequence[PaylineCell]],
+    rules: PayRules,
+    wilds: Wilds,
+    names: Mapping[str, str],
+) -> WayOutcome | None:
+    counted, paid, ways, pays = _ways_pay(symbol, reels, rules, wilds, unread_fills=False)
+    # A tile that was not read fills nothing; if it could have made the symbol pay more, say so.
+    best_counted, _, _, best_pays = _ways_pay(symbol, reels, rules, wilds, unread_fills=True)
+    uncertain = best_pays > pays
+    unpaid = paid is None and len(counted) >= 2 and not uncertain
+    if paid is None and not unpaid and not uncertain:
+        return None
+    return WayOutcome(
+        symbol=symbol,
+        symbol_name=names.get(symbol),
+        reels=counted,
+        matches=len(counted),
+        ways=ways,
+        combo=_paid_combo(paid, len(reels)) if paid else None,
+        pays=pays,
+        unpaid=unpaid,
+        uncertain=uncertain,
+        unread=[cell for matching in best_counted for cell in matching if cell.code is None] if uncertain else [],
+    )
+
+
+def _ways_pay(
+    symbol: str,
+    reels: Sequence[Sequence[PaylineCell]],
+    rules: PayRules,
+    wilds: Wilds,
+    *,
+    unread_fills: bool,
+) -> tuple[list[list[PaylineCell]], PayCombo | None, int, float]:
+    """The matching cells on each reel the symbol counts for, the combo that pays, its ways and its pay."""
+    run: list[list[PaylineCell]] = []
+    for reel in reels:
+        matching = [cell for cell in reel if _fills(symbol, cell.code, wilds, unread_fills=unread_fills)]
+        if not matching:
+            break
+        run.append(matching)
+    paid = _best_combo([symbol] * len(run), rules.combos, wilds, unread_fills=False)
+    counted = run[: len(paid.symbols)] if paid else run
+    ways = math.prod(len(matching) for matching in counted) if counted else 0
+    return counted, paid, ways, paid.value * ways if paid else 0.0
 
 
 # ------------------------------------------------------------------------ matching

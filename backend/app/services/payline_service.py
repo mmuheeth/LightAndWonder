@@ -5,7 +5,7 @@ from typing import Literal
 from app.core.exceptions import AppException
 from app.schemas.game_config import PaytableConfig
 from app.schemas.game_context import GameMode
-from app.schemas.payline import PaylineCell, PaylineResult
+from app.schemas.payline import PaylineCell, PaylineOutcome, PaylineResult, WayOutcome
 from app.schemas.symbol import SymbolReading
 from app.services.game_config_service import GameConfigService
 from app.services.symbol_service import SymbolService
@@ -17,7 +17,8 @@ logger = logging.getLogger(__name__)
 class PaylineService:
     """Finds which paylines of a result screenshot pay, and how much. The symbols on the reels come from
     the symbol reading; the lines (win geometry) and what a run pays (payline combos) from the game's
-    paytable, which is the one the game log reported last unless one is asked for."""
+    paytable, which is the one the game log reported last unless one is asked for. A paytable that pays
+    by ways has no lines: its symbols are scored over every route across the reels instead."""
 
     def __init__(
         self, *, symbols: SymbolService, game_config: GameConfigService, min_confidence: float
@@ -52,13 +53,22 @@ class PaylineService:
         paytable_id, source = self._paytable(reading, paytable)
         config = self._game_config.get_paytable(paytable_id, reading.game, reading.mode)
 
-        lines = self._lines(reading, config)
         rules = config.pay_rules
+        by_ways = config.pay_kind == "ways"
+        lines = [] if by_ways else self._lines(reading, config)
         if rules is None:
             raise AppException(
-                f"Paytable '{paytable_id}' has no payline combos, so nothing can be paid.",
+                f"Paytable '{paytable_id}' has no {'ways' if by_ways else 'payline'} combos, so nothing can be paid.",
                 status_code=422,
                 error_code="PAYLINES_NO_COMBOS",
+            )
+        ways_in_grid = reading.rows**reading.columns
+        if by_ways and config.summary.lines not in (None, ways_in_grid):
+            raise AppException(
+                f"Paytable '{paytable_id}' pays {config.summary.lines} ways, but the {reading.rows} by "
+                f"{reading.columns} grid that was read holds {ways_in_grid}.",
+                status_code=422,
+                error_code="PAYLINES_GRID_MISMATCH",
             )
 
         names = {symbol.code: symbol.name for symbol in config.symbols}
@@ -73,12 +83,20 @@ class PaylineService:
             )
             for tile in reading.tiles
         ]
-        outcomes = paylines.score_lines(lines, {(t.row, t.column): t for t in tiles}, rules, names)
-        total = round(sum(outcome.pays for outcome in outcomes), 6)
+        grid = {(t.row, t.column): t for t in tiles}
+        line_outcomes: list[PaylineOutcome] = []
+        way_outcomes: list[WayOutcome] = []
+        if by_ways:
+            way_outcomes = paylines.score_ways(grid, reading.rows, reading.columns, rules, names)
+        else:
+            line_outcomes = paylines.score_lines(lines, grid, rules, names)
+        scored = [*line_outcomes, *way_outcomes]
+        total = round(sum(outcome.pays for outcome in scored), 6)
 
         logger.info(
-            "Scored %d lines of %s with %s: %s credits over %d paying lines",
-            len(outcomes), reading.id, paytable_id, total, sum(1 for o in outcomes if o.pays > 0),
+            "Scored %d %s of %s with %s: %s credits over %d paying",
+            len(scored), "ways" if by_ways else "lines", reading.id, paytable_id, total,
+            sum(1 for o in scored if o.pays > 0),
         )
         return PaylineResult(
             reading_id=reading.id,
@@ -87,15 +105,17 @@ class PaylineService:
             mode=reading.mode,
             paytable_id=paytable_id,
             paytable_source=source,
-            line_set=len(lines),
+            kind="ways" if by_ways else "lines",
+            line_set=ways_in_grid if by_ways else len(lines),
             min_confidence=floor,
             rows=reading.rows,
             columns=reading.columns,
             reels=reading.reels,
             tiles=tiles,
-            lines=outcomes,
+            lines=line_outcomes,
+            ways=way_outcomes,
             total_credits=total,
-            complete=not any(outcome.uncertain for outcome in outcomes),
+            complete=not any(outcome.uncertain for outcome in scored),
         )
 
     # ---------------------------------------------------------------- internals

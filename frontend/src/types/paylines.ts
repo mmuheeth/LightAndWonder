@@ -1,3 +1,4 @@
+import type { PayKind } from '@/types/gameConfig'
 import type { GameMode } from '@/types/gameContext'
 import type { RoiImage } from '@/types/roi'
 
@@ -55,6 +56,27 @@ export interface PaylineOutcome {
   uncertain: boolean
 }
 
+/** One symbol of a ways paytable: the run it makes over neighbouring reels from the left, on any rows. */
+export interface WayOutcome {
+  symbol: string
+  symbol_name: string | null
+  /** One entry per reel counted, left to right: the cells that show the symbol or a wild standing in for it. */
+  reels: PaylineCell[][]
+  /** Reels counted: the paying combo's length, or the whole run when nothing paid. */
+  matches: number
+  /** The routes over those reels: the matching cells multiplied reel by reel. */
+  ways: number
+  combo: PaidCombo | null
+  /** The combo's value for each way, times the ways. */
+  pays: number
+  /** A run of two or more reels that the paytable pays for other run lengths, but not this one. */
+  unpaid: boolean
+  /** An unread tile could make the symbol pay, or pay more, than it does here. */
+  uncertain: boolean
+  /** The unread tiles that could change this outcome; empty unless it is uncertain. */
+  unread: PaylineCell[]
+}
+
 export interface PaylineResult {
   /** The symbol reading (and ROI record) that was scored. */
   reading_id: string
@@ -64,7 +86,9 @@ export interface PaylineResult {
   paytable_id: string
   /** log: the paytable the game log reported last; request: the one asked for. */
   paytable_source: 'log' | 'request'
-  /** The number of lines of the win geometry set that was used. */
+  /** Whether the paytable pays along lines (`lines` is filled) or by ways (`ways` is). */
+  kind: PayKind
+  /** The number of lines of the win geometry set that was used; for ways, the ways the grid holds. */
   line_set: number
   /** Percent a tile had to reach to be read. */
   min_confidence: number
@@ -75,7 +99,9 @@ export interface PaylineResult {
   /** Row by row, left to right. */
   tiles: PaylineCell[]
   lines: PaylineOutcome[]
-  /** The pays of every line added up, for a credit bet on each line. */
+  /** Filled for a ways paytable, whose `lines` are empty. */
+  ways: WayOutcome[]
+  /** The pays of every line (or symbol, for ways) added up, for a credit bet on each line. */
   total_credits: number
   /** False when an unread tile could change the total, which is then the least it can be. */
   complete: boolean

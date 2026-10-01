@@ -5,23 +5,30 @@ import { SymbolChip } from '@/components/game-config/SymbolChip'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatPayout } from '@/lib/gameConfigFormat'
-import type { PaylineCombos, SymbolInfo } from '@/types/gameConfig'
+import type { PayKind, PaylineCombos, SymbolInfo } from '@/types/gameConfig'
 
 export function PaylineCombosCard({
   combos,
   symbols,
+  kind = 'lines',
 }: {
   combos: PaylineCombos
   symbols: ReadonlyMap<string, SymbolInfo>
+  kind?: PayKind
 }) {
+  const ways = kind === 'ways'
   return (
     <Card>
       <CardHeader>
         <CardTitle>
           <Coins aria-hidden />
-          Payline combos
+          {ways ? 'Ways combos' : 'Payline combos'}
         </CardTitle>
-        <CardDescription>What each symbol pays for a run of it, left to right along a line</CardDescription>
+        <CardDescription>
+          {ways
+            ? 'What each symbol pays for every way over neighbouring reels, from the first reel on'
+            : 'What each symbol pays for a run of it, left to right along a line'}
+        </CardDescription>
       </CardHeader>
 
       <CardContent>

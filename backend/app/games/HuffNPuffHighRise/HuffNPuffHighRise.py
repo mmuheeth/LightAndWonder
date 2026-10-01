@@ -1,5 +1,6 @@
 huff_n_puff_high_rise = {
     "name": "HuffNPuffHighRise",
+    "pay_kind": "ways",  # 243 ways: wins are read over every route across the reels, not along paylines
     "simulator" : {
         "host": "127.0.0.1",
         "port": 9090,

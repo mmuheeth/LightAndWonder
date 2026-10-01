@@ -5,7 +5,7 @@ from collections import OrderedDict
 from collections.abc import Callable
 from pathlib import Path
 from threading import Lock
-from typing import Any, TypeVar
+from typing import Any, TypeVar, get_args
 from xml.etree import ElementTree as ET
 
 from app.core.exceptions import (
@@ -19,6 +19,7 @@ from app.schemas.game_config import (
     OrbTable,
     OrbValue,
     PayCombo,
+    PayKind,
     PaylineComboRow,
     PaylineCombos,
     PayRules,
@@ -155,8 +156,9 @@ class GameConfigService:
         geometry_path: Path | None,
     ) -> PaytableConfig:
         warnings: list[str] = []
+        pay_kind = _pay_kind(game, config)
         try:
-            math = read_math(folder / "math.xml")
+            math = read_math(folder / "math.xml", pay_kind)
         except FileNotFoundError:
             raise NotFoundException(f"Paytable '{paytable_id}' not found in {folder.parent}") from None
         except OSError as exc:
@@ -166,6 +168,11 @@ class GameConfigService:
                 f"math.xml of '{paytable_id}' is not valid XML: {exc}", error_code="CONFIG_INVALID"
             ) from exc
 
+        if math.other_pay_kind:
+            warnings.append(
+                f"{game} is configured with pay_kind '{pay_kind}', but the combos in math.xml are "
+                f"{math.other_pay_kind} combos"
+            )
         cfg = _optional(lambda: read_game_cfg(folder), "gameConfig.cfg", warnings)
         if cfg is None:
             warnings.append(f"No gameConfig.cfg in {folder}; using math.xml only")
@@ -189,6 +196,7 @@ class GameConfigService:
             game=game,
             mode=mode,
             paytable_id=paytable_id,
+            pay_kind=pay_kind,
             summary=summary,
             symbols=symbols,
             win_geometry=win_geometry,
@@ -231,6 +239,17 @@ class GameConfigService:
 
 
 # ------------------------------------------------------------------ presentation
+
+
+def _pay_kind(game: str, config: dict[str, Any]) -> PayKind:
+    """The game's `pay_kind`: every game says whether it pays along lines or by ways, and nothing is guessed."""
+    kind = config.get("pay_kind")
+    if kind not in get_args(PayKind):
+        raise AppException(
+            f"'{game}' needs a pay_kind of 'lines' or 'ways' in its config, not {kind!r}",
+            error_code="CONFIG_INVALID",
+        )
+    return kind
 
 
 def _summary(cfg: GameCfg | None, math: MathData) -> PaytableSummary:

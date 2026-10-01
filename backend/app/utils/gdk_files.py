@@ -1,11 +1,12 @@
 """Readers for the GDK config files of a paytable: `math.xml`, `gameConfig.cfg` and `winGeometry.xml`.
 They return what the files say and nothing more; deciding what to show is up to the caller."""
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
-from app.schemas.game_config import PaylineSet, ReelStrip
+from app.schemas.game_config import PaylineSet, PayKind, ReelStrip
 
 _ANY_SYMBOL = "ANY"  # padding in a payline combo: "any symbol may follow"
 
@@ -48,9 +49,11 @@ class MathData:
     wilds: dict[str, frozenset[str]]  # each wild to the symbols it stands in for
     reel_strips: tuple[ReelStrip, ...]
     reel_sets: tuple[RawReelSet, ...]
-    payline_combos: tuple[RawCombo, ...]
+    payline_combos: tuple[RawCombo, ...]  # for a ways paytable, its anyways combos
     allowed_bets: tuple[int, ...]
     weighted_tables: dict[str, tuple[tuple[int, int], ...]]  # name -> ((value, weight), ...)
+    # Set when the file has no combos of the kind that was asked for, but has some of this one.
+    other_pay_kind: PayKind | None = None
 
 
 def read_game_cfg(folder: Path) -> GameCfg | None:
@@ -77,10 +80,16 @@ def read_game_cfg(folder: Path) -> GameCfg | None:
     return None
 
 
-def read_math(path: Path) -> MathData:
+def read_math(path: Path, pay_kind: PayKind) -> MathData:
+    """`pay_kind` is the game's own say (its config) on whether it pays along lines or by ways, which
+    decides what in the file counts as a pay combo."""
     root = _parse(path)
     default = root.find("DefaultConfiguration")
     symbol_set = root.find("SymbolSetList/SymbolSet")
+    paytable_id = _text(default, "PaytableID")
+    combos = _pay_combos(root, paytable_id, pay_kind)
+    other: PayKind = "ways" if pay_kind == "lines" else "lines"
+    mismatched = other if not combos and _pay_combos(root, paytable_id, other) else None
 
     return MathData(
         return_pct=_number(_text(root, "GamePct")),
@@ -91,11 +100,12 @@ def read_math(path: Path) -> MathData:
         wilds=_wilds(symbol_set),
         reel_strips=tuple(_reel_strips(root)),
         reel_sets=tuple(_reel_sets(root)),
-        payline_combos=tuple(_payline_combos(root, _text(default, "PaytableID"))),
+        payline_combos=tuple(combos),
         allowed_bets=tuple(
             int(bet) for bet in _value_table(root, "AllowedBetsTbl") if bet.isdigit()
         ),
         weighted_tables=_weighted_tables(root),
+        other_pay_kind=mismatched,
     )
 
 
@@ -155,27 +165,33 @@ def _reel_sets(root: ET.Element) -> list[RawReelSet]:
     return sets
 
 
-def _payline_combos(root: ET.Element, paytable_id: str | None) -> list[RawCombo]:
-    """The combos of the first payline combo set that the default paytable uses."""
+def _pay_combos(root: ET.Element, paytable_id: str | None, pay_kind: PayKind) -> list[RawCombo]:
+    """The combos of the default paytable. A paytable that plays lines uses the first payline combo set
+    it names; one that plays ways (GDK `AnywaysCombo`, one combo set per symbol) uses every combo set it names."""
     used: set[str] = set()
     for paytable in root.iterfind("PaytableList/Paytable"):
         if _text(paytable, "Identifier") == paytable_id:
             used = set(_texts(paytable, "ComboSetIDList/ComboSet"))
-    for combo_set in root.iterfind("ComboSetList/PaylineComboSet"):
-        if _text(combo_set, "Identifier") not in used:
-            continue
-        combos = []
-        for combo in combo_set.iterfind("PaylineComboList/PaylineCombo"):
-            symbols = _texts(combo, "SymbolList/Symbol")
-            value = _number(_text(combo, "Value"))
-            if value is not None:
-                combos.append(
-                    RawCombo(
-                        tuple(s for s in symbols if s != _ANY_SYMBOL), value, _integer(_text(combo, "ComboID"))
-                    )
-                )
-        return combos
+    named = [s for s in root.iterfind("ComboSetList/*") if _text(s, "Identifier") in used]
+
+    if pay_kind == "ways":
+        return _raw_combos(combo for combo_set in named for combo in combo_set.iter("AnywaysCombo"))
+    for combo_set in named:
+        if combo_set.tag == "PaylineComboSet":
+            return _raw_combos(combo_set.iterfind("PaylineComboList/PaylineCombo"))
     return []
+
+
+def _raw_combos(elements: Iterable[ET.Element]) -> list[RawCombo]:
+    combos = []
+    for combo in elements:
+        symbols = _texts(combo, "SymbolList/Symbol")
+        value = _number(_text(combo, "Value"))
+        if value is not None:
+            combos.append(
+                RawCombo(tuple(s for s in symbols if s != _ANY_SYMBOL), value, _integer(_text(combo, "ComboID")))
+            )
+    return combos
 
 
 def _value_table(root: ET.Element, name: str) -> list[str]:

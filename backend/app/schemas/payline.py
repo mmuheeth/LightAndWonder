@@ -3,6 +3,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from app.schemas.game_config import PayKind
 from app.schemas.game_context import GameMode
 from app.schemas.roi import RoiImage
 
@@ -62,8 +63,31 @@ class PaylineOutcome(BaseModel):
     uncertain: bool = False
 
 
+class WayOutcome(BaseModel):
+    """One symbol of a ways paytable: the run it makes over neighbouring reels from the left, on any rows."""
+
+    symbol: str
+    symbol_name: str | None = None
+    # One entry per reel counted, left to right: the cells that show the symbol or a wild standing in for it.
+    reels: list[list[PaylineCell]]
+    # Reels counted: the paying combo's length, or the whole run when nothing paid.
+    matches: int
+    # The routes over those reels: the cells that match, multiplied reel by reel.
+    ways: int
+    combo: PaidCombo | None = None
+    # The combo's value for each way, times the ways.
+    pays: float
+    # A run of two or more reels that the paytable pays for other run lengths, but not this one
+    # (and no unread tile could have made it longer).
+    unpaid: bool = False
+    # An unread tile could make the symbol pay, or pay more, than it does here.
+    uncertain: bool = False
+    # The unread tiles that could change this outcome; empty unless it is uncertain.
+    unread: list[PaylineCell] = []
+
+
 class PaylineResult(BaseModel):
-    """The paylines of one result screenshot, and what they pay."""
+    """The paylines (or, for a game that pays by ways, the ways) of one result screenshot, and what they pay."""
 
     # The symbol reading (and so the ROI record) that was scored.
     reading_id: str
@@ -73,7 +97,9 @@ class PaylineResult(BaseModel):
     paytable_id: str
     # log: the paytable the game log reported last; request: the one asked for.
     paytable_source: Literal["log", "request"]
-    # The number of lines of the win geometry set that was used.
+    # Whether the paytable pays along lines (`lines` is filled) or by ways (`ways` is).
+    kind: PayKind = "lines"
+    # The number of lines of the win geometry set that was used; for ways, the ways the grid holds.
     line_set: int
     # Percent a tile had to reach to be read.
     min_confidence: float
@@ -84,8 +110,10 @@ class PaylineResult(BaseModel):
     # Row by row, left to right.
     tiles: list[PaylineCell]
     lines: list[PaylineOutcome]
+    ways: list[WayOutcome] = []
     total_credits: float = Field(
-        description="The pays of every line added up: what the paytable pays for a credit bet on each line."
+        description="The pays of every line (or symbol, for ways) added up: what the paytable pays for a credit "
+        "bet on each line."
     )
     # False when an unread tile could change the total, which is then the least it can be.
     complete: bool

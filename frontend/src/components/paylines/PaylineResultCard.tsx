@@ -46,7 +46,7 @@ function AwardedLine({ line }: { line: PaylineOutcome }) {
   )
 }
 
-function Caveat({ children }: { children: string }) {
+export function Caveat({ children }: { children: string }) {
   return (
     <p className="flex items-start gap-2 text-sm text-amber-700 dark:text-amber-400">
       <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />

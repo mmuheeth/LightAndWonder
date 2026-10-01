@@ -1,4 +1,6 @@
 import os
+import re
+from itertools import count
 from pathlib import Path
 from typing import Any
 
@@ -142,6 +144,29 @@ def math_xml(**overrides: str) -> str:
     return MATH_XML.format(**parts)
 
 
+def ways_math_xml(sets: dict[str, list[tuple[str, int]]]) -> str:
+    """`math_xml` for a paytable that pays by ways, with a ScatterComboSet of AnywaysCombo per symbol as the GDK
+    writes them. `sets` maps a symbol to its combos, each a pattern and a value: ("AA AA AA ANY ANY", 2)."""
+    ids = count(1)
+
+    def anyways(pattern: str, value: int) -> str:
+        listed = "".join(f"<Symbol>{s}</Symbol>" for s in pattern.split())
+        return (
+            f"<AnywaysCombo><SymbolList>{listed}</SymbolList><ComboID>{next(ids)}</ComboID>"
+            f"<Group>100</Group><Value>{value}</Value><BaseMultiplier>BetPerLine</BaseMultiplier></AnywaysCombo>"
+        )
+
+    combo_sets = "".join(
+        f"<ScatterComboSet><Identifier>{symbol}Combos</Identifier><ScatterComboList>"
+        + "".join(anyways(pattern, value) for pattern, value in combos)
+        + "</ScatterComboList></ScatterComboSet>"
+        for symbol, combos in sets.items()
+    )
+    xml = re.sub(r"<ComboSetList>.*</ComboSetList>", f"<ComboSetList>{combo_sets}</ComboSetList>", math_xml(), flags=re.S)
+    named = "".join(f"<ComboSet>{symbol}Combos</ComboSet>" for symbol in sets)
+    return xml.replace("<ComboSet>PaylineComboSet_Main</ComboSet>", named)
+
+
 GAME_CFG = """<GameConfig>
   <DisplayGameId>Test 90% Prog:NONE</DisplayGameId>
   <GamePct>91.50</GamePct>
@@ -191,6 +216,7 @@ class World:
         self.geometry.write_text(WIN_GEOMETRY, encoding="utf-8")
         self.config: dict[str, Any] = {
             "name": "TestGame",
+            "pay_kind": "lines",
             "simulator": {
                 "logs": str(self.log),
                 "game_config": str(self.config_dir),
@@ -385,6 +411,83 @@ def test_a_paytable_without_combos_has_no_pay_rules(world: World, service: GameC
     (world.folder / "math.xml").write_text(math_xml(combos=""), encoding="utf-8")
 
     assert service.get_paytable(PAYTABLE).pay_rules is None
+
+
+def test_the_pay_kind_is_the_one_the_game_config_states(world: World, service: GameConfigService) -> None:
+    assert service.get_paytable(PAYTABLE).pay_kind == "lines"
+
+
+@pytest.mark.parametrize("kind", [None, "", "payways", 243])
+def test_a_game_must_state_whether_it_pays_by_lines_or_by_ways(
+    world: World, service: GameConfigService, kind: object
+) -> None:
+    world.config["pay_kind"] = kind
+    if kind is None:
+        del world.config["pay_kind"]
+
+    with pytest.raises(AppException) as raised:
+        service.get_paytable(PAYTABLE)
+
+    assert raised.value.error_code == "CONFIG_INVALID"
+    assert "pay_kind" in str(raised.value) and "TestGame" in str(raised.value)
+
+
+def test_a_game_that_pays_by_lines_does_not_read_ways_combos(
+    world: World, service: GameConfigService
+) -> None:
+    (world.folder / "math.xml").write_text(ways_math_xml({"AA": [("AA AA AA ANY ANY", 2)]}), encoding="utf-8")
+
+    result = service.get_paytable(PAYTABLE)
+
+    assert result.pay_kind == "lines"
+    assert result.pay_rules is None and result.payline_combos is None
+    assert any("pay_kind 'lines'" in w and "ways combos" in w for w in result.warnings)
+
+
+def test_a_game_that_pays_by_ways_does_not_read_payline_combos(
+    world: World, service: GameConfigService
+) -> None:
+    world.config["pay_kind"] = "ways"
+
+    result = service.get_paytable(PAYTABLE)  # the default math.xml holds payline combos only
+
+    assert result.pay_kind == "ways"
+    assert result.pay_rules is None and result.payline_combos is None
+    assert any("pay_kind 'ways'" in w and "lines combos" in w for w in result.warnings)
+
+
+def test_a_ways_paytable_reads_the_anyways_combos_of_every_combo_set_it_names(
+    world: World, service: GameConfigService
+) -> None:
+    xml = ways_math_xml(
+        {
+            "AA": [("AA AA AA AA AA", 20), ("AA AA AA ANY ANY", 2)],
+            "BB": [("BB BB BB ANY ANY", 3)],
+        }
+    )
+    # A combo set the paytable does not name pays nothing.
+    unused = "<ScatterComboSet><Identifier>Other</Identifier><ScatterComboList><AnywaysCombo><SymbolList>"
+    unused += "<Symbol>CC</Symbol></SymbolList><Value>9</Value></AnywaysCombo></ScatterComboList></ScatterComboSet>"
+    (world.folder / "math.xml").write_text(xml.replace("</ComboSetList>", f"{unused}</ComboSetList>"), encoding="utf-8")
+    world.config["pay_kind"] = "ways"
+
+    result = service.get_paytable(PAYTABLE)
+
+    assert result.pay_kind == "ways" and result.pay_rules is not None
+    assert not any("pay_kind" in w for w in result.warnings)
+    # The ANY padding is dropped, so a combo's length is its run length.
+    assert [(c.id, c.symbols, c.value) for c in result.pay_rules.combos] == [
+        (1, ["AA"] * 5, 20),
+        (2, ["AA"] * 3, 2),
+        (3, ["BB"] * 3, 3),
+    ]
+    # The Game Config tab shows what each symbol pays by run length, the same as for lines.
+    assert result.payline_combos is not None
+    assert result.payline_combos.lengths == [5, 3]
+    assert [(row.symbols, row.payouts) for row in result.payline_combos.rows] == [
+        (["AA"], [20, 2]),
+        (["BB"], [None, 3]),
+    ]
 
 
 # ------------------------------------------------------------------ win geometry

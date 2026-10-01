@@ -81,7 +81,10 @@ export interface WildRule {
   substitutes: string[]
 }
 
-/** What a payline win is decided by: every combo, mixed ones included, and the wilds. */
+/** How a paytable pays: along the lines of a win geometry, or by ways (every route over neighbouring reels). */
+export type PayKind = 'lines' | 'ways'
+
+/** What a payline or ways win is decided by: every combo, mixed ones included, and the wilds. */
 export interface PayRules {
   /** In file order. */
   combos: PayCombo[]
@@ -122,6 +125,8 @@ export interface PaytableConfig {
   game: string
   mode: GameMode
   paytable_id: string
+  /** The game's own `pay_kind` setting. For ways, `summary.lines` counts ways and `win_geometry` is not used. */
+  pay_kind: PayKind
   summary: PaytableSummary
   symbols: SymbolInfo[]
   win_geometry: WinGeometry | null
