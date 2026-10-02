@@ -9,6 +9,14 @@ from app.schemas.game_context import GameMode
 PayKind = Literal["lines", "ways"]
 
 
+class CurrentBet(BaseModel):
+    """The bet the game log says is in force. Both amounts are in cents, as the log writes them, so the denom
+    is already counted in them: divide by the denom to get credits."""
+
+    bets_per_unit: float = Field(description="Bet on each line (each way, for a ways paytable): credits times denom.")
+    total_bet: float = Field(description="Bet on the whole spin.")
+
+
 class CurrentPaytable(BaseModel):
     """What the game log currently says is in play. Cheap to build: never touches the disk."""
 
@@ -21,6 +29,9 @@ class CurrentPaytable(BaseModel):
     paytable_id: str | None = Field(None, description="None until the log has reported one.")
     denom: float | None = Field(None, description="In cents, as written in the log.")
     supported_denoms: list[float] = []
+    bet: CurrentBet | None = Field(
+        None, description="None until the log has reported a bet under the current denom."
+    )
 
 
 class PaytableList(BaseModel):

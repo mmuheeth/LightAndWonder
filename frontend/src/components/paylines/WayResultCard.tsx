@@ -2,12 +2,12 @@ import { Fragment } from 'react'
 import { Grid3x3 } from 'lucide-react'
 
 import { SubHeading } from '@/components/layout/Section'
-import { Caveat } from '@/components/paylines/PaylineResultCard'
+import { BetNote, Caveat } from '@/components/paylines/PaylineResultCard'
 import { PaylineOverlay } from '@/components/paylines/PaylineOverlay'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { cellCode, cellLabel, formatCredits, formatPercent, isUnread } from '@/lib/paylines'
+import { cellCode, cellLabel, creditsPerUnit, formatCredits, formatPercent, isUnread } from '@/lib/paylines'
 import { cn } from '@/lib/utils'
 import type { PaylineCell, PaylineResult, WayOutcome } from '@/types/paylines'
 
@@ -16,7 +16,7 @@ const wayName = (way: WayOutcome) => way.symbol_name ?? way.symbol
 const wayNames = (ways: WayOutcome[]) => ways.map(wayName).join(', ')
 
 /** A symbol that paid: the cells that make up its run reel by reel, how many ways they make, and the pay. */
-function AwardedWay({ way }: { way: WayOutcome }) {
+function AwardedWay({ way, perUnit }: { way: WayOutcome; perUnit: number }) {
   return (
     <li className="space-y-1.5 rounded-lg border bg-card p-3 shadow-card">
       <div className="flex items-baseline justify-between gap-3">
@@ -26,7 +26,7 @@ function AwardedWay({ way }: { way: WayOutcome }) {
           <span className="text-muted-foreground">matches {way.matches}</span>
         </p>
         <p className="shrink-0 text-sm text-muted-foreground">
-          pays <span className="font-semibold text-foreground tabular-nums">{formatCredits(way.pays)}</span>
+          pays <span className="font-semibold text-foreground tabular-nums">{formatCredits(way.credits)}</span>
         </p>
       </div>
       <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1 font-mono text-xs">
@@ -43,8 +43,14 @@ function AwardedWay({ way }: { way: WayOutcome }) {
       </p>
       {way.combo ? (
         <p className="text-sm text-muted-foreground">
-          {way.ways} × <span className="font-medium text-foreground">{formatCredits(way.combo.value)}</span> →{' '}
-          <span className="font-medium text-foreground">{formatCredits(way.pays)}</span> credits
+          {way.ways} × <span className="font-medium text-foreground">{formatCredits(way.combo.value)}</span>
+          {perUnit !== 1 ? (
+            <>
+              {' '}
+              × <span className="font-medium text-foreground">{formatCredits(perUnit)}</span> bet
+            </>
+          ) : null}{' '}
+          → <span className="font-medium text-foreground">{formatCredits(way.credits)}</span> credits
         </p>
       ) : null}
       {way.combo ? (
@@ -69,7 +75,7 @@ function distinctCells(ways: WayOutcome[]): PaylineCell[] {
  * are framed on the reels.
  */
 export function WayResultCard({ result }: { result: PaylineResult }) {
-  const awarded = result.ways.filter((way) => way.pays > 0).sort((a, b) => b.pays - a.pays)
+  const awarded = result.ways.filter((way) => way.pays > 0).sort((a, b) => b.credits - a.credits)
   const unpaid = result.ways.filter((way) => way.unpaid)
   const uncertain = result.ways.filter((way) => way.uncertain)
   const unread = result.tiles.filter(isUnread)
@@ -96,6 +102,7 @@ export function WayResultCard({ result }: { result: PaylineResult }) {
             paytable from {result.paytable_source === 'log' ? 'log' : 'request'}
           </span>
         </div>
+        <BetNote bet={result.bet} unit="way" />
 
         {result.reels ? (
           <PaylineOverlay
@@ -114,7 +121,7 @@ export function WayResultCard({ result }: { result: PaylineResult }) {
           {awarded.length > 0 ? (
             <ul className="grid gap-3 md:grid-cols-2">
               {awarded.map((way) => (
-                <AwardedWay key={way.symbol} way={way} />
+                <AwardedWay key={way.symbol} way={way} perUnit={creditsPerUnit(result)} />
               ))}
             </ul>
           ) : (

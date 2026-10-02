@@ -257,6 +257,45 @@ def test_the_fortune_ox_screen_of_two_rows_of_pisces_pays_255_over_13_lines() ->
     assert lines[7].combo is not None and lines[7].combo.pattern == ["BB", "BB", "BB", "ANY", "ANY"]
 
 
+# ----------------------------------------------------------------------------- credits
+
+
+def test_a_line_pays_its_combo_times_the_credits_bet_on_it() -> None:
+    wilds = paylines.wild_map(RULES)
+
+    line = paylines.score_line(1, cells("AA AA AA BB CC"), RULES, wilds, NAMES, credits_per_unit=3)
+    nothing = paylines.score_line(1, cells("BB AA AA AA AA"), RULES, wilds, NAMES, credits_per_unit=5)
+
+    assert (line.pays, line.credits) == (2, 6)
+    assert (nothing.pays, nothing.credits) == (0, 0)
+    assert score("AA AA AA BB CC").credits == 2  # a credit on the line unless told otherwise
+
+
+def test_the_fortune_ox_win_the_game_logged_as_1650_is_275_a_credit_times_the_bet() -> None:
+    """Real: reel stops 87 41 52 76 113 of FortuneOx-1103AX-2c-90, spun at BetsPerUnit 6 on a 2c denom, were logged as
+    `totalWin ... 1650.000` (cents). The grid they make has a wild in the bottom row, which stands in for Ox on the
+    lines that cross it. The paytable pays 275 for a credit on each line; the bet is 6 / 2 = 3 credits on each, so
+    825 credits, and 825 credits of 2c are the 1650 cents."""
+    screen = ["DD DD DD DD DD", "DD DD DD DD DD", "JJ FG EE WC JJ"]
+    grid = {
+        (row, reel): PaylineCell(row=row, column=reel, code=code, guess=code, confidence=99.0)
+        for row, text in enumerate(screen)
+        for reel, code in enumerate(text.split())
+    }
+    lines = paylines.score_lines(
+        [[int(row) for row in line] for line in FORTUNE_OX_LINES], grid, FORTUNE_OX, NAMES, credits_per_unit=6 / 2
+    )
+
+    assert sum(line.pays for line in lines) == 275
+    assert sum(line.credits for line in lines) == 825
+    assert 825 * 2 == 1650
+    # Line 8 runs DD DD DD WC JJ: the wild is the fourth of its four.
+    assert (lines[7].matches, lines[7].pays, lines[7].credits) == (4, 15, 45)
+    assert [(step.relation, step.counted) for step in lines[7].steps] == [
+        ("same", True), ("same", True), ("wild", True), ("different", True),
+    ]  # fmt: skip
+
+
 # ------------------------------------------------------------------------------- ways
 
 # A game that pays by ways: Ace pays from three reels, Bell only for three, and wilds fill their own combo.
@@ -324,6 +363,16 @@ def test_the_best_combo_the_run_fills_pays() -> None:
 
 def test_a_run_counts_from_the_first_reel_only() -> None:
     assert way_scores(["CC AA AA AA AA", "CC AA AA AA AA", "CC CC CC CC CC"]) == {}
+
+
+def test_a_symbol_pays_the_credits_bet_on_each_way() -> None:
+    grid = way_grid(["AA BB AA CC BB", "AA AA WC CC AA", "BB CC AA BB CC"])
+
+    outcomes = paylines.score_ways(grid, 3, 5, WAY_RULES, NAMES, credits_per_unit=2)
+
+    scores = {outcome.symbol: outcome for outcome in outcomes}
+    assert (scores["AA"].pays, scores["AA"].credits) == (12, 24)
+    assert (scores["BB"].pays, scores["BB"].credits) == (3, 6)
 
 
 def test_a_run_the_paytable_does_not_pay_is_flagged_with_its_ways() -> None:

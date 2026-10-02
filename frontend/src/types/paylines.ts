@@ -27,6 +27,18 @@ export interface PaylineStep {
   counted: boolean
 }
 
+/** The bet the awards were worked out for, from the game log. */
+export interface PaylineBet {
+  /** Cents, as written in the log. */
+  denom: number
+  /** Cents bet on each line (each way): the credits times the denom. */
+  bets_per_unit: number
+  /** Credits bet on each line (way): what a combo's value is multiplied by. */
+  credits_per_unit: number
+  /** Credits bet on the spin. */
+  total_bet: number
+}
+
 /** The payline combo a line was paid by. */
 export interface PaidCombo {
   /** The ComboID in math.xml. */
@@ -49,7 +61,10 @@ export interface PaylineOutcome {
   /** Reels in the run from the left, wilds included. */
   matches: number
   combo: PaidCombo | null
+  /** What the combo pays for one credit bet on the line. */
   pays: number
+  /** What the line pays at the bet that was played: `pays` times the credits bet on each line. */
+  credits: number
   /** A run of two or more of a symbol the paytable pays for other run lengths, but not this one. */
   unpaid: boolean
   /** An unread tile on the line could make it pay, or pay more, than it does here. */
@@ -67,8 +82,10 @@ export interface WayOutcome {
   /** The routes over those reels: the matching cells multiplied reel by reel. */
   ways: number
   combo: PaidCombo | null
-  /** The combo's value for each way, times the ways. */
+  /** The combo's value for each way, times the ways: what the symbol pays for one credit bet on each way. */
   pays: number
+  /** What the symbol pays at the bet that was played: `pays` times the credits bet on each way. */
+  credits: number
   /** A run of two or more reels that the paytable pays for other run lengths, but not this one. */
   unpaid: boolean
   /** An unread tile could make the symbol pay, or pay more, than it does here. */
@@ -101,7 +118,9 @@ export interface PaylineResult {
   lines: PaylineOutcome[]
   /** Filled for a ways paytable, whose `lines` are empty. */
   ways: WayOutcome[]
-  /** The pays of every line (or symbol, for ways) added up, for a credit bet on each line. */
+  /** Null when the log has reported no bet (or denom) yet: the awards are then for one credit on each line. */
+  bet: PaylineBet | null
+  /** The credits of every line (or symbol, for ways) added up: the pays times the credits bet on each line. */
   total_credits: number
   /** False when an unread tile could change the total, which is then the least it can be. */
   complete: boolean

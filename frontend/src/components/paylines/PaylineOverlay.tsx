@@ -1,19 +1,21 @@
 import { roiImageSrc } from '@/api/roi'
 import { cn } from '@/lib/utils'
-import { lineColor, lineOffset } from '@/lib/paylines'
+import { lineColor, lineOffset, runCells } from '@/lib/paylines'
 import type { RoiImage } from '@/types/roi'
 import type { PaylineCell } from '@/types/paylines'
 
 interface OverlayLine {
   number: number
   cells: PaylineCell[]
+  /** Reels in the run from the left, wilds included: the line is drawn this far and no further. */
+  matches: number
 }
 
 interface PaylineOverlayProps {
   image: RoiImage
   rows: number
   columns: number
-  /** Drawn through the middle of their cells, each in its own colour. */
+  /** Drawn through the middle of the cells of their run, each in its own colour, and stopping where it ends. */
   lines: OverlayLine[]
   /** Cells to put a frame around, e.g. the ones that make up a run. */
   frames?: PaylineCell[]
@@ -68,10 +70,13 @@ export function PaylineOverlay({
         ))}
         {lines.map((line) => {
           const offset = fan ? lineOffset(line.number) : 0
+          const run = runCells(line)
+          // A run of one tile is drawn as a dot: the same point twice, which the round caps fill in.
+          const drawn = run.length > 1 ? run : [run[0], run[0]]
           return (
             <polyline
               key={line.number}
-              points={line.cells.map((cell) => `${cell.column + 0.5},${cell.row + 0.5 + offset}`).join(' ')}
+              points={drawn.map((cell) => `${cell.column + 0.5},${cell.row + 0.5 + offset}`).join(' ')}
               fill="none"
               stroke={lineColor(line.number)}
               strokeWidth={3}

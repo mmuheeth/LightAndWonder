@@ -1,4 +1,4 @@
-import type { PaylineCell, PaylineOutcome } from '@/types/paylines'
+import type { PaylineCell, PaylineOutcome, PaylineResult } from '@/types/paylines'
 
 /** Golden-angle hues, so any two lines of a set of forty or so stay tellable apart. */
 export const lineColor = (number: number) => `hsl(${Math.round((number * 137.508) % 360)} 85% 52%)`
@@ -13,6 +13,16 @@ export const lineOffset = (number: number) => ((number % 7) - 3) * 0.02
 export const formatCredits = (value: number) => Number(value.toFixed(2)).toLocaleString('en-US')
 
 export const formatPercent = (value: number) => `${value.toFixed(1)}%`
+
+/** What a combo's value is multiplied by: the credits bet on each line, or one when the log has not said. */
+export const creditsPerUnit = (result: Pick<PaylineResult, 'bet'>) => result.bet?.credits_per_unit ?? 1
+
+/**
+ * The cells a line is drawn through: its run from the first reel, wilds included, which ends where the
+ * symbols stop matching. The first cell is always in it, even when nothing matches it.
+ */
+export const runCells = (line: Pick<PaylineOutcome, 'cells' | 'matches'>) =>
+  line.cells.slice(0, Math.max(line.matches, 1))
 
 /** The position as the game's own 1-based row and reel: r1c1 is top left. */
 export const cellLabel = (cell: Pick<PaylineCell, 'row' | 'column'>) => `r${cell.row + 1}c${cell.column + 1}`

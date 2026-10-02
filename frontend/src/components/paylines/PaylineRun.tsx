@@ -38,12 +38,18 @@ export function PaylineRun({ line }: { line: PaylineOutcome }) {
   )
 }
 
-/** "5 × Pisces → 25 credits" */
-export function PayDescription({ line }: { line: PaylineOutcome }) {
+/** "5 × Pisces → 75 credits", and when more than a credit was bet on the line, "(25 × 3 bet)". */
+export function PayDescription({ line, creditsPerUnit }: { line: PaylineOutcome; creditsPerUnit: number }) {
   return (
     <>
       {line.matches} × <span className="font-medium text-foreground">{line.symbol_name ?? line.symbol}</span> →{' '}
-      <span className="font-medium text-foreground">{formatCredits(line.pays)}</span> credits
+      <span className="font-medium text-foreground">{formatCredits(line.credits)}</span> credits
+      {creditsPerUnit !== 1 ? (
+        <>
+          {' '}
+          ({formatCredits(line.pays)} × {formatCredits(creditsPerUnit)} bet)
+        </>
+      ) : null}
     </>
   )
 }

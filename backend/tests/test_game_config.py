@@ -22,6 +22,7 @@ from app.services.game_config_service import GameConfigService
 from app.services.game_context_service import GameContextService
 from app.utils import game_config as game_settings
 from app.utils.log_watcher import LogWatcher
+from tests.test_log_watcher import bet_line
 
 PAYTABLE = "TestGame-100c-90"
 
@@ -757,6 +758,23 @@ def test_current_reports_what_the_log_says(
     assert current.paytable_id == PAYTABLE
     assert current.denom == 100.0
     assert current.supported_denoms == [1.0, 100.0]
+
+
+def test_current_reports_the_bet_the_log_reported_under_the_denom(
+    world: World, service: GameConfigService, watcher: LogWatcher
+) -> None:
+    world.log.write_text(LOG_LINE.format(paytable=PAYTABLE))
+    watcher.poll()
+    watcher.poll()
+    assert service.current().bet is None  # a denom, but no bet yet
+
+    with world.log.open("a") as log:
+        log.write(bet_line("200.000", "17600.000") + "\n")
+    watcher.poll()
+
+    bet = service.current().bet
+    assert bet is not None
+    assert (bet.bets_per_unit, bet.total_bet) == (200.0, 17600.0)
 
 
 def test_current_has_no_paytable_until_the_log_reports_one(

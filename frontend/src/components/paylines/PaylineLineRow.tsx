@@ -4,7 +4,7 @@ import { PayDescription, PaylineSteps } from '@/components/paylines/PaylineRun'
 import { PaylineOverlay } from '@/components/paylines/PaylineOverlay'
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Badge } from '@/components/ui/badge'
-import { cellCode, cellLabel, formatCredits, formatPercent, lineColor, unreadCells } from '@/lib/paylines'
+import { cellCode, cellLabel, creditsPerUnit, formatCredits, formatPercent, lineColor, unreadCells } from '@/lib/paylines'
 import type { PaylineOutcome, PaylineResult } from '@/types/paylines'
 
 /** What is worth saying about a line besides what it paid. */
@@ -53,7 +53,7 @@ function LineDetail({ result, line }: { result: PaylineResult; line: PaylineOutc
       {line.combo ? (
         <div className="space-y-0.5">
           <p className="text-sm text-muted-foreground">
-            <PayDescription line={line} />
+            <PayDescription line={line} creditsPerUnit={creditsPerUnit(result)} />
           </p>
           <p className="font-mono text-[11px] text-muted-foreground">
             {line.combo.pattern.join(' ')} · combo {line.combo.id ?? '—'}
@@ -93,7 +93,7 @@ export function PaylineLineRow({ result, line }: { result: PaylineResult; line: 
               variant="outline"
               className="border-emerald-300 bg-emerald-50 font-mono text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
             >
-              matches {line.matches} · pays {formatCredits(line.pays)}
+              matches {line.matches} · pays {formatCredits(line.credits)}
             </Badge>
           ) : (
             <Badge variant="outline" className="font-mono text-muted-foreground">

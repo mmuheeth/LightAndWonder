@@ -5,7 +5,7 @@ from typing import Literal
 from app.core.exceptions import AppException
 from app.schemas.game_config import PaytableConfig
 from app.schemas.game_context import GameMode
-from app.schemas.payline import PaylineCell, PaylineOutcome, PaylineResult, WayOutcome
+from app.schemas.payline import PaylineBet, PaylineCell, PaylineOutcome, PaylineResult, WayOutcome
 from app.schemas.symbol import SymbolReading
 from app.services.game_config_service import GameConfigService
 from app.services.symbol_service import SymbolService
@@ -18,7 +18,9 @@ class PaylineService:
     """Finds which paylines of a result screenshot pay, and how much. The symbols on the reels come from
     the symbol reading; the lines (win geometry) and what a run pays (payline combos) from the game's
     paytable, which is the one the game log reported last unless one is asked for. A paytable that pays
-    by ways has no lines: its symbols are scored over every route across the reels instead."""
+    by ways has no lines: its symbols are scored over every route across the reels instead. What a combo pays
+    is for one credit bet on the line; the credits that win are that times the credits bet on each line,
+    which is the log's current bet over the current denom."""
 
     def __init__(
         self, *, symbols: SymbolService, game_config: GameConfigService, min_confidence: float
@@ -71,6 +73,8 @@ class PaylineService:
                 error_code="PAYLINES_GRID_MISMATCH",
             )
 
+        bet = self._bet(reading)
+        credits_per_unit = bet.credits_per_unit if bet else 1.0
         names = {symbol.code: symbol.name for symbol in config.symbols}
         tiles = [
             PaylineCell(
@@ -87,11 +91,13 @@ class PaylineService:
         line_outcomes: list[PaylineOutcome] = []
         way_outcomes: list[WayOutcome] = []
         if by_ways:
-            way_outcomes = paylines.score_ways(grid, reading.rows, reading.columns, rules, names)
+            way_outcomes = paylines.score_ways(
+                grid, reading.rows, reading.columns, rules, names, credits_per_unit=credits_per_unit
+            )
         else:
-            line_outcomes = paylines.score_lines(lines, grid, rules, names)
+            line_outcomes = paylines.score_lines(lines, grid, rules, names, credits_per_unit=credits_per_unit)
         scored = [*line_outcomes, *way_outcomes]
-        total = round(sum(outcome.pays for outcome in scored), 6)
+        total = round(sum(outcome.credits for outcome in scored), 6)
 
         logger.info(
             "Scored %d %s of %s with %s: %s credits over %d paying",
@@ -114,6 +120,7 @@ class PaylineService:
             tiles=tiles,
             lines=line_outcomes,
             ways=way_outcomes,
+            bet=bet,
             total_credits=total,
             complete=not any(outcome.uncertain for outcome in scored),
         )
@@ -134,6 +141,20 @@ class PaylineService:
             "so its paylines cannot be scored; play a spin, or name the paytable.",
             status_code=409,
             error_code="PAYTABLE_UNKNOWN",
+        )
+
+    def _bet(self, reading: SymbolReading) -> PaylineBet | None:
+        """The bet and denom the game log reports now, if they are the reading's game's and both are known."""
+        current = self._game_config.current()
+        if (current.game, current.mode) != (reading.game, reading.mode):
+            return None
+        if not current.denom or current.bet is None:
+            return None
+        return PaylineBet(
+            denom=current.denom,
+            bets_per_unit=current.bet.bets_per_unit,
+            credits_per_unit=round(current.bet.bets_per_unit / current.denom, 6),
+            total_bet=round(current.bet.total_bet / current.denom, 6),
         )
 
     @staticmethod

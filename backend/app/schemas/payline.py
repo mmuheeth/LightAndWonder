@@ -41,6 +41,19 @@ class PaidCombo(BaseModel):
     value: float
 
 
+class PaylineBet(BaseModel):
+    """The bet the awards were worked out for, as the game log reported it."""
+
+    denom: float = Field(description="In cents, as written in the log.")
+    bets_per_unit: float = Field(
+        description="Cents bet on each line (each way, for a ways paytable): the credits times the denom."
+    )
+    credits_per_unit: float = Field(
+        description="Credits bet on each line (way): bets_per_unit / denom. A combo's value is multiplied by it."
+    )
+    total_bet: float = Field(description="Credits bet on the spin.")
+
+
 class PaylineOutcome(BaseModel):
     """One payline of the win geometry, read left to right."""
 
@@ -55,7 +68,10 @@ class PaylineOutcome(BaseModel):
     # Reels in the run from the left, wilds included; 0 when the first cell was unread.
     matches: int
     combo: PaidCombo | None = None
+    # What the combo pays for one credit bet on the line.
     pays: float
+    # What the line pays at the bet that was played: `pays` times the credits bet on each line.
+    credits: float
     # A run of two or more of a symbol that the paytable pays for other run lengths, but not this one
     # (and no unread tile could have made it longer).
     unpaid: bool = False
@@ -75,8 +91,10 @@ class WayOutcome(BaseModel):
     # The routes over those reels: the cells that match, multiplied reel by reel.
     ways: int
     combo: PaidCombo | None = None
-    # The combo's value for each way, times the ways.
+    # The combo's value for each way, times the ways: what the symbol pays for one credit bet on each way.
     pays: float
+    # What the symbol pays at the bet that was played: `pays` times the credits bet on each way.
+    credits: float
     # A run of two or more reels that the paytable pays for other run lengths, but not this one
     # (and no unread tile could have made it longer).
     unpaid: bool = False
@@ -111,9 +129,11 @@ class PaylineResult(BaseModel):
     tiles: list[PaylineCell]
     lines: list[PaylineOutcome]
     ways: list[WayOutcome] = []
+    # None when the log has reported no bet (or denom) yet: the awards are then for one credit on each line.
+    bet: PaylineBet | None = None
     total_credits: float = Field(
-        description="The pays of every line (or symbol, for ways) added up: what the paytable pays for a credit "
-        "bet on each line."
+        description="The credits of every line (or symbol, for ways) added up: what the paytable pays at the bet "
+        "that was played, that is, its pays times the credits bet on each line."
     )
     # False when an unread tile could change the total, which is then the least it can be.
     complete: bool

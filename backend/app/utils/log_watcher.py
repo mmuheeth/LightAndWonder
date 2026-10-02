@@ -39,8 +39,16 @@ _PUBLISHED = (
     rb"\[MessageQueue\.Publish\] msg\[GDK\.\w+\.\w+\."
     rb"(?P<message>GameOverMsg|CycleResultsStoppedMsg_BaseGame|FirstCycleResultsIterationFinishedMsg)\]"
 )
+# The bet in force, logged whenever it is set: "BetsPerUnit:6.000, UnitData:[ units: 40, cost: 88 ],
+# TotalBetCost:528.000". Both amounts are in the game's smallest currency unit, so the denom is already in them:
+# at a 2c denom BetsPerUnit 6 is 3 credits on each unit and a total bet of 528 is 264 credits.
+_BET = (
+    rb"\[BetManager\.UpdateCurrentBet\]\[CurrentBet \{\{ BetsPerUnit:(?P<bets_per_unit>\d+(?:\.\d+)?),"
+    rb" UnitData:\[[^\]]*\], TotalBetCost:(?P<total_bet>\d+(?:\.\d+)?)"
+)
 _PAYTABLE_RE = re.compile(_PAYTABLE)
-_EVENT_RE = re.compile(b"|".join((_PAYTABLE, _SPIN, _RESULT, _PUBLISHED)))
+_BET_RE = re.compile(_BET)
+_EVENT_RE = re.compile(b"|".join((_PAYTABLE, _SPIN, _RESULT, _PUBLISHED, _BET)))
 
 _TIME_LENGTH = 21  # "09/01/26 15:20:44.848" at the start of every log line
 _TIME_FORMAT = "%m/%d/%y %H:%M:%S.%f"
@@ -54,6 +62,7 @@ _HISTORY_OVERLAP = 1024  # longer than any paytable line, so a line cut by a chu
 
 class LogEventType(str, Enum):
     PAYTABLE = "paytable"
+    BET = "bet"
     SPIN_START = "spin_start"
     SPIN_END = "spin_end"
     RESULT = "result"
@@ -70,6 +79,15 @@ _PUBLISHED_EVENTS = {
 
 
 @dataclass(frozen=True, slots=True)
+class Bet:
+    """The bet the game log says is in force, in the game's smallest currency unit (cents)."""
+
+    # Put on each unit (a payline, or a way): the credits times the denom.
+    bets_per_unit: float
+    total_bet: float
+
+
+@dataclass(frozen=True, slots=True)
 class LogEvent:
     type: LogEventType
     # Game machine's clock, as written in the log; None if the line has an unexpected format.
@@ -78,6 +96,8 @@ class LogEvent:
     paytable_id: str | None = None
     denom: float | None = None
     supported_denoms: tuple[float, ...] = ()
+    # BET events:
+    bet: Bet | None = None
     # SPIN_START / SPIN_END events: which state machine spun (base game, free spins, ...).
     state_machine: str | None = None
     # RESULT events: whether the spin won, and how much (0 when it did not).
@@ -92,6 +112,8 @@ class LogState:
     paytable_id: str | None = None
     denom: float | None = None
     supported_denoms: tuple[float, ...] = ()
+    # Only ever the bet that was set under `denom`; None until the log has shown one.
+    bet: Bet | None = None
     spinning: bool = False
 
 
@@ -212,12 +234,17 @@ class LogWatcher:
             if tail.cancelled.is_set():
                 return
             if event.type is LogEventType.PAYTABLE:
+                # A bet is in cents, so it means nothing under another denom; the bet line that follows sets it again.
+                bet = self._state.bet if event.denom == self._state.denom else None
                 self._state = replace(
                     self._state,
                     paytable_id=event.paytable_id,
                     denom=event.denom,
                     supported_denoms=event.supported_denoms,
+                    bet=bet,
                 )
+            elif event.type is LogEventType.BET:
+                self._state = replace(self._state, bet=event.bet)
             elif event.type in (LogEventType.SPIN_START, LogEventType.SPIN_END):
                 self._state = replace(self._state, spinning=event.type is LogEventType.SPIN_START)
         if live:
@@ -269,9 +296,10 @@ class _Tail:
         if self._offset is None:
             # First look at an existing log: what is in it is history, only new lines count.
             self._offset, self._file_id = size, file_id
-            found = _last_paytable(file, size, self._history_bytes)
-            if found is not None:
-                self._owner._on_event(self, found, live=False)
+            found, bet = _last_events(file, size, self._history_bytes)
+            for event in (found, bet):
+                if event is not None:
+                    self._owner._on_event(self, event, live=False)
             return
 
         if file_id != self._file_id or size < self._offset:
@@ -311,22 +339,35 @@ def _open_shared(path: Path) -> BinaryIO:
     return os.fdopen(msvcrt.open_osfhandle(handle, os.O_RDONLY | os.O_BINARY), "rb", buffering=0)
 
 
-def _last_paytable(file: BinaryIO, size: int, limit: int) -> LogEvent | None:
-    """Finds the most recent paytable line by reading backwards from the end, at most `limit` bytes."""
+def _last_events(file: BinaryIO, size: int, limit: int) -> tuple[LogEvent | None, LogEvent | None]:
+    """Finds the most recent paytable line, and the bet line the game logged after it, by reading backwards
+    from the end, at most `limit` bytes. A bet logged before that paytable belongs to another setting."""
     floor = max(0, size - limit)
     end = size
+    later_bet: LogEvent | None = None  # the newest bet seen, in the chunks read so far
     while True:
         start = max(floor, end - _HISTORY_CHUNK)
         file.seek(start)
         data = file.read(end - start)
-        match = None
-        for match in _PAYTABLE_RE.finditer(data):
-            pass  # keep the last one
-        if match is not None:
-            return _make_event(data, match)
+        paytable = _last_match(_PAYTABLE_RE, data)
+        bet = _last_match(_BET_RE, data)
+        if paytable is not None:
+            if later_bet is None and bet is not None and bet.start() > paytable.start():
+                later_bet = _make_event(data, bet)
+            return _make_event(data, paytable), later_bet
+        if later_bet is None and bet is not None:
+            later_bet = _make_event(data, bet)
         if start <= floor:
-            return None
+            return None, None
         end = start + _HISTORY_OVERLAP
+
+
+def _last_match(pattern: re.Pattern[bytes], data: bytes) -> re.Match[bytes] | None:
+    """The last line `pattern` finds, as a match of the combined pattern, which is what `_make_event` reads."""
+    match = None
+    for match in pattern.finditer(data):
+        pass  # keep the last one
+    return _EVENT_RE.match(data, match.start()) if match is not None else None
 
 
 def _make_event(data: bytes, match: re.Match[bytes]) -> LogEvent:
@@ -343,6 +384,9 @@ def _make_event(data: bytes, match: re.Match[bytes]) -> LogEvent:
             denom=_to_float(match["denom"]),
             supported_denoms=tuple(item for item in supported if item is not None),
         )
+    if match["bets_per_unit"] is not None:
+        bet = Bet(bets_per_unit=float(match["bets_per_unit"]), total_bet=float(match["total_bet"]))
+        return LogEvent(LogEventType.BET, log_time, bet=bet)
     if match["machine"] is not None:
         kind = LogEventType.SPIN_START if match["state"] == b"stateSpin" else LogEventType.SPIN_END
         return LogEvent(kind, log_time, state_machine=match["machine"].decode())

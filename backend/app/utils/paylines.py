@@ -24,10 +24,13 @@ def score_line(
     rules: PayRules,
     wilds: Wilds,
     names: Mapping[str, str],
+    *,
+    credits_per_unit: float = 1.0,
 ) -> PaylineOutcome:
     """A line pays the best combo that its symbols fill from the first reel on. A wild fills what it
     stands in for, and a combo of wilds is filled by wilds alone. A tile that was not read fills nothing;
-    if it could have changed the outcome, the outcome is flagged `uncertain`."""
+    if it could have changed the outcome, the outcome is flagged `uncertain`. A combo's value is what it
+    pays for one credit on the line; `credits_per_unit` is the credits that were bet on it."""
     codes = [cell.code for cell in cells]
     paid = _best_combo(codes, rules.combos, wilds, unread_fills=False)
 
@@ -51,6 +54,7 @@ def score_line(
         matches=matches,
         combo=_paid_combo(paid, len(cells)) if paid else None,
         pays=pays,
+        credits=_credits(pays, credits_per_unit),
         unpaid=paid is None and matches >= 2 and symbol in paying and not uncertain,
         uncertain=uncertain,
     )
@@ -61,11 +65,20 @@ def score_lines(
     grid: Mapping[tuple[int, int], PaylineCell],
     rules: PayRules,
     names: Mapping[str, str],
+    *,
+    credits_per_unit: float = 1.0,
 ) -> list[PaylineOutcome]:
     """`lines[n][reel]` is the row line n crosses on that reel; `grid` is keyed by (row, reel)."""
     wilds = wild_map(rules)
     return [
-        score_line(number, [grid[(row, reel)] for reel, row in enumerate(line)], rules, wilds, names)
+        score_line(
+            number,
+            [grid[(row, reel)] for reel, row in enumerate(line)],
+            rules,
+            wilds,
+            names,
+            credits_per_unit=credits_per_unit,
+        )
         for number, line in enumerate(lines, start=1)
     ]
 
@@ -76,15 +89,18 @@ def score_ways(
     columns: int,
     rules: PayRules,
     names: Mapping[str, str],
+    *,
+    credits_per_unit: float = 1.0,
 ) -> list[WayOutcome]:
     """`grid` is keyed by (row, reel). Every symbol that heads a combo is scored on its own: it runs over the
     reels from the first for as long as each shows it (a wild stands in), and the best combo the run fills
     pays its value for every route over the reels it counts, that is, times the cells that match on each.
-    Symbols that neither pay nor make a run of two or more reels, and cannot, are left out."""
+    Symbols that neither pay nor make a run of two or more reels, and cannot, are left out. As for a line,
+    `credits_per_unit` is the credits bet on each way."""
     wilds = wild_map(rules)
     reels = [[grid[(row, reel)] for row in range(rows)] for reel in range(columns)]
     heads = dict.fromkeys(combo.symbols[0] for combo in rules.combos if combo.symbols)
-    outcomes = (_score_symbol_ways(symbol, reels, rules, wilds, names) for symbol in heads)
+    outcomes = (_score_symbol_ways(symbol, reels, rules, wilds, names, credits_per_unit) for symbol in heads)
     return [outcome for outcome in outcomes if outcome is not None]
 
 
@@ -94,6 +110,7 @@ def _score_symbol_ways(
     rules: PayRules,
     wilds: Wilds,
     names: Mapping[str, str],
+    credits_per_unit: float,
 ) -> WayOutcome | None:
     counted, paid, ways, pays = _ways_pay(symbol, reels, rules, wilds, unread_fills=False)
     # A tile that was not read fills nothing; if it could have made the symbol pay more, say so.
@@ -110,6 +127,7 @@ def _score_symbol_ways(
         ways=ways,
         combo=_paid_combo(paid, len(reels)) if paid else None,
         pays=pays,
+        credits=_credits(pays, credits_per_unit),
         unpaid=unpaid,
         uncertain=uncertain,
         unread=[cell for matching in best_counted for cell in matching if cell.code is None] if uncertain else [],
@@ -207,6 +225,10 @@ def _steps(
             relation = "same" if left == right else "different"
         steps.append(PaylineStep(relation=relation, counted=counted))
     return steps
+
+
+def _credits(pays: float, credits_per_unit: float) -> float:
+    return round(pays * credits_per_unit, 6)
 
 
 def _paid_combo(combo: PayCombo, reels: int) -> PaidCombo:

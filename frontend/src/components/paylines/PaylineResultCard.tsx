@@ -7,13 +7,14 @@ import { PayDescription, PaylineRun } from '@/components/paylines/PaylineRun'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { formatCredits, formatPercent, lineColor } from '@/lib/paylines'
-import type { PaylineOutcome, PaylineResult } from '@/types/paylines'
+import { formatDenom } from '@/lib/gameConfigFormat'
+import { creditsPerUnit, formatCredits, formatPercent, lineColor } from '@/lib/paylines'
+import type { PaylineBet, PaylineOutcome, PaylineResult } from '@/types/paylines'
 
 const lineNames = (lines: PaylineOutcome[]) => lines.map((line) => `Line ${line.number}`).join(', ')
 
 /** A line that paid: what it read, what it matched, and what the paytable gave for it. */
-function AwardedLine({ line }: { line: PaylineOutcome }) {
+function AwardedLine({ line, perUnit }: { line: PaylineOutcome; perUnit: number }) {
   return (
     <li
       className="space-y-1.5 rounded-lg border border-l-4 bg-card p-3 shadow-card"
@@ -30,12 +31,12 @@ function AwardedLine({ line }: { line: PaylineOutcome }) {
           <span className="text-muted-foreground">matches {line.matches}</span>
         </p>
         <p className="shrink-0 text-sm text-muted-foreground">
-          pays <span className="font-semibold text-foreground tabular-nums">{formatCredits(line.pays)}</span>
+          pays <span className="font-semibold text-foreground tabular-nums">{formatCredits(line.credits)}</span>
         </p>
       </div>
       <PaylineRun line={line} />
       <p className="text-sm text-muted-foreground">
-        <PayDescription line={line} />
+        <PayDescription line={line} creditsPerUnit={perUnit} />
       </p>
       {line.combo ? (
         <p className="font-mono text-[11px] text-muted-foreground">
@@ -51,6 +52,20 @@ export function Caveat({ children }: { children: string }) {
     <p className="flex items-start gap-2 text-sm text-amber-700 dark:text-amber-400">
       <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
       <span>{children}</span>
+    </p>
+  )
+}
+
+/** The bet the awards are for, from the game log; without one they are for a credit on each line (way). */
+export function BetNote({ bet, unit }: { bet: PaylineBet | null; unit: 'line' | 'way' }) {
+  if (!bet) {
+    return <Caveat>{`The game log has not reported a bet yet, so the awards are for 1 credit on each ${unit}.`}</Caveat>
+  }
+  return (
+    <p className="text-xs text-muted-foreground">
+      Bet <span className="font-medium text-foreground tabular-nums">{formatCredits(bet.total_bet)}</span> credits,{' '}
+      <span className="font-medium text-foreground tabular-nums">{formatCredits(bet.credits_per_unit)}</span> on each{' '}
+      {unit}, at denom <span className="font-mono text-foreground">{formatDenom(bet.denom)}</span>, from the game log
     </p>
   )
 }
@@ -86,6 +101,7 @@ export function PaylineResultCard({ result }: { result: PaylineResult }) {
             set chosen by game_config, paytable from {result.paytable_source === 'log' ? 'log' : 'request'}
           </span>
         </div>
+        <BetNote bet={result.bet} unit="line" />
 
         {result.reels ? (
           <PaylineOverlay
@@ -104,7 +120,7 @@ export function PaylineResultCard({ result }: { result: PaylineResult }) {
           {awarded.length > 0 ? (
             <ul className="grid gap-3 md:grid-cols-2">
               {awarded.map((line) => (
-                <AwardedLine key={line.number} line={line} />
+                <AwardedLine key={line.number} line={line} perUnit={creditsPerUnit(result)} />
               ))}
             </ul>
           ) : (

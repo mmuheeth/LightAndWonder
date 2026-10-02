@@ -12,6 +12,16 @@ export interface CurrentPaytable {
   /** Cents, as written in the log. */
   denom: number | null
   supported_denoms: number[]
+  /** Null until the log has reported a bet under the current denom. */
+  bet: CurrentBet | null
+}
+
+/** The bet the log says is in force. Both amounts are in cents, so the denom is already counted in them. */
+export interface CurrentBet {
+  /** Bet on each line (each way): the credits times the denom. */
+  bets_per_unit: number
+  /** Bet on the whole spin. */
+  total_bet: number
 }
 
 export interface PaytableList {

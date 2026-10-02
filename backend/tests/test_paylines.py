@@ -21,6 +21,7 @@ from app.utils import symbol_classifier
 from app.utils.log_watcher import LogWatcher
 from tests.fake_obs import FakeObs
 from tests.test_game_config import GAME_CFG, LOG_LINE, math_xml, ways_math_xml
+from tests.test_log_watcher import bet_line, paytable_line
 from tests.test_roi import (  # noqa: F401  (fixtures and helpers of the ROI tests, which this builds on)
     GAME,
     connected,
@@ -170,6 +171,13 @@ def keep(service: PaylineService, saved: SymbolReading) -> SymbolReading:
 WINNING = ["AA AA AA BB CC", "BB AA CC CC CC", "CC AA AA AA SC"]  # line 1 pays 2 (Ace x3)
 
 
+def play(install: Install, watcher: LogWatcher, *lines: str) -> None:
+    """Has the game log say `lines`, and the watcher read them."""
+    install.log.write_text("\n".join(lines) + "\n")
+    watcher.poll()
+    watcher.poll()
+
+
 def score(client: TestClient, reading_id: str, **params) -> dict:
     response = client.get(f"{URL}/score", params={"reading": reading_id, "paytable": PAYTABLE, **params})
     assert response.status_code == 200, response.text
@@ -210,6 +218,49 @@ def test_a_saved_reading_is_scored_along_the_lines_of_the_win_geometry(
     assert (lines[3]["pays"], lines[3]["combo"]) == (0, None)
     assert result["total_credits"] == 5
     assert result["complete"] is True
+
+
+def test_the_credits_follow_the_bet_and_denom_the_game_log_reports(
+    payline_client: TestClient, payline_service: PaylineService, install: Install, watcher: LogWatcher
+) -> None:
+    saved = keep(payline_service, reading(["AA AA AA BB CC", "BB BB BB AA CC", "CC AA AA AA SC"]))
+    # 6 cents on each line at a 2c denom is 3 credits on each line, and 528 cents is 264 credits.
+    play(install, watcher, paytable_line(PAYTABLE, "2.000"), bet_line("6.000", "528.000"))
+
+    result = score(payline_client, saved.id)
+
+    assert result["bet"] == {"denom": 2.0, "bets_per_unit": 6.0, "credits_per_unit": 3.0, "total_bet": 264.0}
+    lines = {line["number"]: line for line in result["lines"]}
+    assert (lines[1]["pays"], lines[1]["credits"]) == (3, 9)  # Bell x3
+    assert (lines[2]["pays"], lines[2]["credits"]) == (2, 6)  # Ace x3
+    assert (lines[3]["pays"], lines[3]["credits"]) == (0, 0)
+    assert result["total_credits"] == 15
+
+
+def test_a_dearer_denom_does_not_make_the_same_cents_worth_more_credits(
+    payline_client: TestClient, payline_service: PaylineService, install: Install, watcher: LogWatcher
+) -> None:
+    saved = keep(payline_service, reading(["AA AA AA BB CC", "BB BB BB AA CC", "CC AA AA AA SC"]))
+    # The same 6 cents on each line, but at a 1c denom: 6 credits on each line.
+    play(install, watcher, paytable_line(PAYTABLE, "1.000"), bet_line("6.000", "528.000"))
+
+    result = score(payline_client, saved.id)
+
+    assert result["bet"]["credits_per_unit"] == 6 and result["bet"]["total_bet"] == 528
+    assert result["total_credits"] == 30
+
+
+def test_the_awards_are_for_one_credit_on_each_line_while_the_log_has_no_bet(
+    payline_client: TestClient, payline_service: PaylineService, install: Install, watcher: LogWatcher
+) -> None:
+    saved = keep(payline_service, reading(["AA AA AA BB CC", "BB BB BB AA CC", "CC AA AA AA SC"]))
+    play(install, watcher, paytable_line(PAYTABLE, "2.000"))  # a denom, but no bet yet
+
+    result = score(payline_client, saved.id)
+
+    assert result["bet"] is None
+    assert all(line["credits"] == line["pays"] for line in result["lines"])
+    assert result["total_credits"] == 5
 
 
 def test_a_run_the_paytable_does_not_pay_is_reported(
@@ -389,6 +440,21 @@ def test_a_ways_paytable_is_scored_over_every_route_across_the_reels(
     assert (ways["BB"]["matches"], ways["BB"]["ways"], ways["BB"]["pays"]) == (3, 1, 3)
     assert result["total_credits"] == 15
     assert result["complete"] is True
+
+
+def test_a_ways_paytable_pays_the_credits_bet_on_each_way(
+    payline_client: TestClient, payline_service: PaylineService, ways_install: Install, watcher: LogWatcher
+) -> None:
+    saved = keep(payline_service, reading(["AA BB AA CC BB", "AA AA WC CC AA", "BB CC AA BB CC"]))
+    play(ways_install, watcher, paytable_line(PAYTABLE, "1.000"), bet_line("5.000", "500.000"))
+
+    result = score(payline_client, saved.id)
+
+    assert result["bet"]["credits_per_unit"] == 5
+    ways = {way["symbol"]: way for way in result["ways"]}
+    assert (ways["AA"]["pays"], ways["AA"]["credits"]) == (12, 60)
+    assert (ways["BB"]["pays"], ways["BB"]["credits"]) == (3, 15)
+    assert result["total_credits"] == 75
 
 
 def test_a_ways_game_whose_math_has_no_ways_combos_is_refused_as_such(

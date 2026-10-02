@@ -15,6 +15,7 @@ from app.core.exceptions import (
     ServiceUnavailableException,
 )
 from app.schemas.game_config import (
+    CurrentBet,
     CurrentPaytable,
     OrbTable,
     OrbValue,
@@ -83,6 +84,7 @@ class GameConfigService:
             paytable_id=state.paytable_id,
             denom=state.denom,
             supported_denoms=list(state.supported_denoms),
+            bet=CurrentBet(bets_per_unit=state.bet.bets_per_unit, total_bet=state.bet.total_bet) if state.bet else None,
         )
 
     def list_paytables(self, game: str | None = None, mode: GameMode | None = None) -> PaytableList:

@@ -10,7 +10,7 @@ from app.schemas.game_context import GameContextUpdate, GameMode
 from app.services.game_context_service import GameContextService
 from app.utils import log_watcher
 from app.utils.game_config import active_log_path, game_log_path, load_game_config
-from app.utils.log_watcher import LogEvent, LogEventType, LogWatcher
+from app.utils.log_watcher import Bet, LogEvent, LogEventType, LogWatcher
 
 PREFIX = "09/01/26 15:20:{sec:02d}.{ms:03d} 00 FortuneOx:24856 "
 
@@ -23,6 +23,14 @@ def paytable_line(paytable: str = "FortuneOx-1102ZX-5c-89", denom: str = "5.000"
     return (
         f"{stamp(**kw)}DBG: [WagerGameApp.UpdatePayTable] current denom[{denom}] "
         f"current paytableId[{paytable}] current supported denoms[1.000,2.000,5.000]"
+    )
+
+
+def bet_line(bets_per_unit: str = "6.000", total: str = "528.000", **kw) -> str:
+    return (
+        f"{stamp(**kw)}INF: [BetManager.UpdateCurrentBet][CurrentBet {{{{ BetsPerUnit:{bets_per_unit}, "
+        f"UnitData:[ units: 40, cost: 88 ], TotalBetCost:{total}, TotalBetValue:{total}, "
+        "DirectPlayData:{{ DirectPlayType:NotDirectPlay, BonusID:, BonusIndex:0, BonusOption:0 }} }}]"
     )
 
 
@@ -253,6 +261,78 @@ def test_state_keeps_the_supported_denoms_of_the_paytable(log: Path) -> None:
     watcher.poll()
 
     assert watcher.state.supported_denoms == (1.0, 2.0, 5.0)
+
+
+def test_reports_the_bet_in_force(log: Path) -> None:
+    watcher, events = watch(log)
+    watcher.poll()
+
+    append(log, paytable_line("PT-A", "2.000"), bet_line("6.000", "528.000"))
+    watcher.poll()
+
+    assert [event.type for event in events] == [LogEventType.PAYTABLE, LogEventType.BET]
+    assert events[1].bet == Bet(bets_per_unit=6.0, total_bet=528.0)
+    assert watcher.state.bet == Bet(bets_per_unit=6.0, total_bet=528.0)
+
+
+def test_a_bet_means_nothing_under_another_denom(log: Path) -> None:
+    watcher, _ = watch(log)
+    watcher.poll()
+    append(log, paytable_line("PT-A", "2.000"), bet_line("6.000", "528.000"))
+    watcher.poll()
+
+    # The game restates the paytable on every bet change; under the same denom the bet stands.
+    append(log, paytable_line("PT-A", "2.000", sec=50))
+    watcher.poll()
+    assert watcher.state.bet == Bet(6.0, 528.0)
+
+    # Under another one it is in other cents, so it is dropped until the game logs the bet again.
+    append(log, paytable_line("PT-B", "1.000", sec=51))
+    watcher.poll()
+    assert watcher.state.bet is None
+    append(log, bet_line("1.000", "88.000", sec=51))
+    watcher.poll()
+    assert watcher.state.bet == Bet(1.0, 88.0)
+
+
+def test_the_current_bet_is_found_in_an_existing_log(log: Path) -> None:
+    append(
+        log,
+        paytable_line("PT-OLD", "1.000"),
+        bet_line("1.000", "88.000"),
+        machine_line("stateSpin"),
+        paytable_line("PT-CURRENT", "2.000"),
+        bet_line("6.000", "528.000"),
+        NOISE,
+    )
+    watcher, events = watch(log)
+
+    watcher.poll()
+
+    assert events == []
+    assert (watcher.state.paytable_id, watcher.state.denom) == ("PT-CURRENT", 2.0)
+    assert watcher.state.bet == Bet(6.0, 528.0)
+
+
+def test_a_bet_logged_before_the_current_paytable_is_not_taken_for_its_own(log: Path) -> None:
+    append(log, bet_line("1.000", "88.000"), paytable_line("PT-CURRENT", "2.000"), NOISE)
+    watcher, _ = watch(log)
+
+    watcher.poll()
+
+    assert watcher.state.paytable_id == "PT-CURRENT"
+    assert watcher.state.bet is None
+
+
+def test_the_bet_is_found_in_a_later_chunk_than_the_paytable(tmp_path: Path) -> None:
+    path = tmp_path / "big.log"
+    append(path, paytable_line("PT-FAR", "2.000"), *["x" * 200] * 4000, bet_line("4.000", "352.000"))
+    watcher = LogWatcher(lambda: path, history_bytes=4 * 1024 * 1024)
+
+    watcher.poll()
+
+    assert watcher.state.paytable_id == "PT-FAR"
+    assert watcher.state.bet == Bet(4.0, 352.0)
 
 
 def test_reports_the_result_and_the_win_presentation_events(log: Path) -> None:
