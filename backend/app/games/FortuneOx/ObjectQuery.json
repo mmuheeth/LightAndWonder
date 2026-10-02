@@ -2,13 +2,6 @@
   "IDeckWagerButtonQuery": {
     "MechanicalSpinBtnID": 12
   },
-  "NonWagerIDeckButtonQuery": {
-    "TakeWinButton": {
-      "GameObjectIdentifier": "7",
-      "TypeFilter": null,
-      "SceneToSearch": null
-    }
-  },
   "PlayerInfoMeterQuery": {
     "CreditMeter": {
       "GameObjectIdentifier": "Meter_CashCredit",

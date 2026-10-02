@@ -853,7 +853,8 @@ def test_a_meter_the_game_has_not_mapped_reads_as_unavailable(connected) -> None
 # ----------------------------------------------------------------------------- bet
 
 
-def test_the_current_bet_is_not_offered_unless_the_game_lists_it(gaf) -> None:
+def test_the_current_bet_is_not_offered_unless_the_game_lists_it(gaf, monkeypatch) -> None:
+    patch_config(monkeypatch, lambda c: c["gaf"].update(actions=["take_win"]))
     assert "bet" not in [a["id"] for a in gaf.client.get(f"{URL}/actions").json()["data"]]
     connect(gaf)
     refused(act(gaf, "bet"), 404, "NOT_FOUND")

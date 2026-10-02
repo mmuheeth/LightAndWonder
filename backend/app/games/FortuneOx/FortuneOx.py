@@ -72,7 +72,7 @@ fortune_ox = {
         "object_query_root": "app/games/FortuneOx/ObjectQuery.json",
         # The GAF tab's game-specific actions; spin, game state, denoms and meters are common to every game.
         "actions": [
-            "take_win", "toggle_credit_meter"
+            "take_win", "toggle_credit_meter", "bet"
         ],
     }
 }
