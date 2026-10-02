@@ -46,7 +46,7 @@ huff_n_puff_high_rise = {
         "gdk_version": "12",
         "object_query_root": "app/games/HuffNPuffHighRise/ObjectQuery.json",
         "actions": [
-            "take_win", "toggle_credit_meter"
+            "take_win", "toggle_credit_meter", "bet"
         ],
     }
 }

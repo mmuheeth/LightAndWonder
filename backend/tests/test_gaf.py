@@ -848,3 +848,34 @@ def test_a_meter_the_game_has_not_mapped_reads_as_unavailable(connected) -> None
 
     assert values["CollectMeter"] == "unavailable"
     assert values["CreditMeter"] == "CASH: $20,594.00"
+
+
+# ----------------------------------------------------------------------------- bet
+
+
+def test_the_current_bet_is_not_offered_unless_the_game_lists_it(gaf) -> None:
+    assert "bet" not in [a["id"] for a in gaf.client.get(f"{URL}/actions").json()["data"]]
+    connect(gaf)
+    refused(act(gaf, "bet"), 404, "NOT_FOUND")
+
+
+def test_the_current_bet_is_the_bet_meter(gaf, monkeypatch) -> None:
+    patch_config(monkeypatch, lambda c: c["gaf"].update(actions=["bet"]))
+    connect(gaf)
+
+    data = result(act(gaf, "bet"))
+
+    assert data["label"] == "Current bet"
+    assert data["values"] == {"bet": "BET: $20.00"}
+    assert data["message"] == "BET: $20.00."
+    assert gaf.fake.keywords("METERINFO") == [["BetMeter", "name"], ["BetMeter", "value"]]
+
+
+def test_a_bet_meter_the_game_has_not_mapped_fails_the_action(gaf, monkeypatch) -> None:
+    patch_config(monkeypatch, lambda c: c["gaf"].update(actions=["bet"]))
+    connect(gaf)
+    gaf.fake.unmapped_meters = {"BetMeter"}
+
+    error = refused(act(gaf, "bet"), 502, "GAF_KEYWORD_FAILED")
+
+    assert "BetMeter" in error["message"]

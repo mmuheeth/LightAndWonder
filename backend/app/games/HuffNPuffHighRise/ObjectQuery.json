@@ -1,0 +1,9 @@
+{
+  "NonWagerIDeckButtonQuery": {
+    "TakeWinButton": {
+      "GameObjectIdentifier": "DoubleUp_ButtonPanel/TakeWinButton",
+      "TypeFilter": null,
+      "SceneToSearch": null
+    }
+  }
+}

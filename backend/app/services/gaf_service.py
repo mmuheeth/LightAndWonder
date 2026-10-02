@@ -30,7 +30,8 @@ _OFFER_STATE = "offerState"
 _TAKE_WIN = "TakeWinButton"
 _GAMBLE = "GambleButton"
 _CREDIT_METER = "CreditMeter"
-_METERS = (_CREDIT_METER, "BetMeter", "WinMeter", "CollectMeter")
+_BET_METER = "BetMeter"
+_METERS = (_CREDIT_METER, _BET_METER, "WinMeter", "CollectMeter")
 
 # What GAF says when there is no session. NRobot keeps its session for as long as NRobot lives, but
 # the game can be restarted under it.
@@ -113,6 +114,7 @@ _ACTIONS = (
         "the win is collected.",
         "common", False,
     ),
+    _Action("bet", "Current bet", "Reads the bet meter: the amount the next spin is played for.", "game", False),
     _Action("take_win", "Take win", "Collects the win the game is offering.", "game", True),
     _Action("gamble", "Gamble", "Takes the gamble the game is offering.", "game", True),
     _Action("toggle_credit_meter", "Toggle credit meter", "Switches the credit meter between cash and credits.", "game", True),
@@ -175,6 +177,8 @@ class GafService:
         self._io = threading.Lock()
         self._activity: str | None = None
         self._last_state: str | None = None
+        # What the game last said about a button being pressable, to tell "not on offer" from "not found".
+        self._button_reply = ""
         # Held by connect/disconnect and, without waiting, by every command.
         self._lock = threading.Lock()
         self._handlers: dict[str, _Handler] = {
@@ -183,6 +187,7 @@ class GafService:
             "active_denom": lambda target, params: self._active_denom(),
             "available_denoms": lambda target, params: self._available_denoms(),
             "meters": lambda target, params: self._meters(),
+            "bet": lambda target, params: self._bet(),
             "take_win": lambda target, params: self._press_offered(_TAKE_WIN, "Take win"),
             "gamble": lambda target, params: self._press_offered(_GAMBLE, "Gamble"),
             "toggle_credit_meter": lambda target, params: self._toggle_credit_meter(),
@@ -477,7 +482,9 @@ class GafService:
         # Pressing reports success even when there is nothing to press for, so ask first.
         if not self._interactable(button):
             raise AppException(
-                f"{label} is not on offer right now.", status_code=409, error_code="GAF_NOT_AVAILABLE"
+                f"{label} is not on offer right now ({self._button_reply}).",
+                status_code=409,
+                error_code="GAF_NOT_AVAILABLE",
             )
         self._run("IDeck", "PRESSNONWAGERBUTTON", button)
         taken = self._wait_for(lambda: not self._interactable(button), _COLLECT_TIMEOUT)
@@ -488,6 +495,12 @@ class GafService:
                 {"outcome": "still_on_offer", "state": state},
             )
         return _Outcome(f"{label} pressed. The game is in {state}.", {"outcome": "done", "state": state})
+
+    def _bet(self) -> _Outcome:
+        """The bet meter, e.g. `BET: 100`. Unlike `meters`, a game that has not mapped it fails the action:
+        this is all the action reads."""
+        bet = self._meter_text(_BET_METER)
+        return _Outcome(f"{bet}.", {"bet": bet})
 
     def _game_state(self) -> _Outcome:
         states = {machine: _or_unavailable(lambda m=machine: self._state(m)) for machine in _STATE_MACHINES}
@@ -505,12 +518,12 @@ class GafService:
     def _meters(self) -> _Outcome:
         """Each meter's label and value, e.g. `CASH: $997.20`. A meter the game has not mapped reads as unavailable."""
 
-        def read(meter: str) -> str:
-            label, value = self._meter(meter, "name"), self._meter(meter, "value")
-            return f"{label}: {value}" if value else f"{label}: (blank)"
-
-        values = {name: _or_unavailable(lambda n=name: read(n)) for name in _METERS}
+        values = {name: _or_unavailable(lambda n=name: self._meter_text(n)) for name in _METERS}
         return _Outcome("Read the meters.", dict(values))
+
+    def _meter_text(self, meter: str) -> str:
+        label, value = self._meter(meter, "name"), self._meter(meter, "value")
+        return f"{label}: {value}" if value else f"{label}: (blank)"
 
     def _front_panel_messages(self, target: _Target) -> _Outcome:
         """What every message area is showing this instant. A cyclic area shows one message at a time,
@@ -604,9 +617,12 @@ class GafService:
 
     def _interactable(self, button: str) -> bool:
         try:
-            return _truthy(self._run("IDeck", "ISNONWAGERBUTTONINTERACTABLE", button))
-        except KeywordFailed:
-            return False  # e.g. a game that has not mapped this button
+            reply = self._run("IDeck", "ISNONWAGERBUTTONINTERACTABLE", button)
+        except KeywordFailed as exc:  # e.g. a game that has not mapped this button
+            self._button_reply = f"the game could not check it: {exc.error}"
+            return False
+        self._button_reply = f"the game answered {str(reply).strip()!r}"
+        return _truthy(reply)
 
     def _wait_for(self, condition: Callable[[], bool], timeout: float) -> bool:
         deadline = time.monotonic() + timeout

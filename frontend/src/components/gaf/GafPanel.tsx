@@ -2,6 +2,7 @@ import { useState } from 'react'
 import {
   Activity,
   ArrowLeftRight,
+  Banknote,
   Coins,
   Dices,
   Eye,
@@ -50,6 +51,7 @@ const ACTION_ICONS: Record<string, LucideIcon> = {
   toggle_credit_meter: ArrowLeftRight,
   front_panel_messages: MessageSquareText,
   unique_front_panel_messages: Eye,
+  bet: Banknote,
   bet_layout: LayoutGrid,
 }
 
